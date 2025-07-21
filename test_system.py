@@ -11,9 +11,9 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 def test_imports():
     """测试模块导入"""
     try:
-        from models import T_Batch, T_Device_Info, T_TQ_Batch_Archive, T_Device_Batch
+        from models1 import T_Batch, T_Device_Info, T_TQ_Batch_Archive, T_Device_Batch
         from report import generate_tq_report, ReportDataProtocol
-        from database import get_engine
+        from database_config import get_engine
         print("✅ 所有模块导入成功")
         return True
     except Exception as e:
@@ -72,7 +72,7 @@ def test_report_generation():
 def test_models():
     """测试模型定义"""
     try:
-        from models import T_TQ_Batch_Archive, T_Device_Batch, T_Batch, T_Device_Info
+        from models1 import T_TQ_Batch_Archive, T_Device_Batch, T_Batch, T_Device_Info
         from decimal import Decimal
         
         # 创建测试实例

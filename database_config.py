@@ -1,9 +1,10 @@
-from sqlmodel import create_engine, Session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 import streamlit as st
 from contextlib import contextmanager
 
 # @st.cache_resource(show_spinner=False)
-class Database_Config:
+class DatabaseConfig:
     def __init__(self, host: str, port: str, name: str, username: str, password: str):
         self.host = host
         self.port = port
@@ -30,11 +31,12 @@ class Database_Config:
     @contextmanager
     def get_session(self):
         engine = self.get_engine()
-        session = Session(engine)
+        session = sessionmaker(bind=engine)()
         try:
             yield session
-        except Exception as e:
+        except ValueError as e:
             session.rollback()
+            print(f"操作失败: {e}")
             # st.error(f"数据库操作失败: {e}")
         finally:
             session.close()

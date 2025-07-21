@@ -3,135 +3,106 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.cell import Cell
+from openpyxl.utils.dataframe import dataframe_to_rows
 from io import BytesIO
-from typing import Dict, Any, Optional, Protocol
+from typing import Dict, Any, Optional
 from datetime import datetime
 
 
-class ReportDataProtocol(Protocol):
-    """定义报表数据的协议，用于类型提示"""
-    device_id: int
-    device_name: Optional[str]
-    product_name: Optional[str]
-    batch_number: str
-    # 工艺参数
-    p1_up_temp_set: Optional[float]
-    p1_up_temp_press_set: Optional[float]
-    p1_hold_temp_set: Optional[float]
-    p1_hold_temp_press_set: Optional[float]
-    p1_solvent_num_set: Optional[float]
-    # 生产过程
-    p1_up_temp_start_time: Optional[datetime]
-    p1_up_temp_end_time: Optional[datetime]
-    p1_up_temp_min_press: Optional[float]
-    p1_up_temp_max_press: Optional[float]
-    p1_hold_temp_start_time: Optional[datetime]
-    p1_hold_time_end_tme: Optional[datetime]
-    p1_hold_temp_min_press: Optional[float]
-    p1_hold_temp_max_press: Optional[float]
-    # 生产结果
-    p1_solvent_num: Optional[float]
-    p1_out_num: Optional[float]
-    p1_hold_temp_min_temp: Optional[float]
-    p1_hold_temp_max_temp: Optional[float]
-
-
-class Report_Generator:
-    def __init__(self):
+class BaseReport:
+    def __init__(self, column_num: int):
         self.workbook_name = '' # 文件名
         self.worksheet_name = '' # 工作表名
         self.file_path = f'{self.workbook_name}.xlsx'  # 默认文件路径
         self.color = '000000' # 字体、边框颜色
         self.name = '宋体'
         self.title = '' # 报表标题
-        # 字体样式
+        # 标题样式
         self.title_font = Font(name=self.name, size=18, bold=True, color=self.color)
+        # 表头及小标题样式
         self.header_font = Font(name=self.name, size=11, bold=True, color=self.color)
+        # 数据样式
         self.data_font = Font(name=self.name, size=11, bold=False, color=self.color)
+        # 对齐
         self.center_align = Alignment(horizontal='center', vertical='center')
+        # 边框
         self.border = Border(
             left=Side(style='thin', color=self.color),
             right=Side(style='thin', color=self.color),
             top=Side(style='thin', color=self.color),
             bottom=Side(style='thin', color=self.color)
         )
-        self.column_num = 0
+        self.column_num = column_num
         self.workbook = Workbook()
         self.worksheet = self.workbook.active
-        # 添加表头填充色
-        self.header_fill = PatternFill(start_color='E6E6E6', end_color='E6E6E6', fill_type='solid')
+        # 添加填充色
+        self.title_fill = PatternFill(fill_type=None)
+        self.header_fill = PatternFill(fill_type=None)
     
-    def _add_title(self, ws: Worksheet, title: str, column_count: int = 5) -> int:
-        """添加报表标题"""
-        ws.merge_cells(start_row=1, end_row=1, start_column=1, end_column=column_count)
+    # 添加报表标题
+    def _add_title(self, ws: Worksheet, title: str) -> int:
+        ws.merge_cells(start_row=1, end_row=1, start_column=1, end_column=self.column_num)
         title_cell = ws['A1']
         title_cell.value = title
         title_cell.font = self.title_font
+        title_cell.fill = self.title_fill
+        title_cell.border = self.border
         title_cell.alignment = self.center_align
-        return 3  # 返回下一行的位置
+        return 2  # 返回下一行的位置
 
-    def _add_info_section(self, ws: Worksheet, info_data: Dict[str, Any], start_row: int) -> int:
-        """添加信息段落"""
+    # 添加小标题
+    def _add_header_title(self, ws: Worksheet, header_title: str, start_row: int) -> int:
         current_row = start_row
-        
-        # 基本信息标题
-        ws[f'A{current_row}'] = "基本信息"
-        ws[f'A{current_row}'].font = self.header_font
-        current_row += 1
-        
-        # 信息内容
-        col = 0
-        for key, value in info_data.items():
-            if col % 2 == 0:  # 新行
-                current_row += 1
-                ws.cell(row=current_row, column=1, value=f"{key}:")
-                ws.cell(row=current_row, column=2, value=str(value or ""))
-            else:  # 同行右侧
-                ws.cell(row=current_row, column=4, value=f"{key}:")
-                ws.cell(row=current_row, column=5, value=str(value or ""))
-            col += 1
-        
-        return current_row + 2
-    
-    def _add_data_table(self, ws: Worksheet, headers: list, data: list, start_row: int) -> int:
-        """添加数据表格"""
-        current_row = start_row
-        
-        # 添加表头
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=current_row, column=col, value=header)
-            cell.font = self.header_font
-            cell.fill = self.header_fill
-            cell.alignment = self.center_align
-            cell.border = self.border
-        
-        current_row += 1
-        
-        # 添加数据
-        for row_data in data:
-            for col, value in enumerate(row_data, 1):
-                cell = ws.cell(row=current_row, column=col, value=value)
-                cell.font = self.data_font
-                cell.border = self.border
-                if isinstance(value, (int, float)):
-                    cell.alignment = Alignment(horizontal='right', vertical='center')
-                else:
-                    cell.alignment = Alignment(horizontal='left', vertical='center')
-            current_row += 1
-        
+        ws.merge_cells(start_row=current_row, end_row=current_row, start_column=1, end_column=self.column_num)
+        header_cell = ws[f'A{current_row}']
+        header_cell.value = header_title
+        header_cell.font = self.header_font
+        header_cell.fill = self.header_fill
+        header_cell.border = self.border
+        header_cell.alignment = self.center_align
         return current_row + 1
 
-
-class TQ_Report_Generator(Report_Generator):
+    # 添加表头尾内容，注意这里直接用dataframe批量写入了，没做任何判断
+    def _add_header_footer_info(self, ws: Worksheet, header_footer_data: pd.DataFrame, start_row: int) -> int:
+        current_row = start_row
+        if header_footer_data is None or header_footer_data.empty:
+            return current_row
+        rows_cnt, cols_cnt = header_footer_data.shape
+        rows = dataframe_to_rows(header_footer_data, index=False, header=True)
+        for row in rows:
+            ws.append(row)
+        last_row = current_row + rows_cnt - 1
+        for row in ws.iter_rows(min_row=current_row, max_row=last_row, min_col=1, max_col=cols_cnt):
+            for cell in row:
+                cell.font = self.header_font
+                cell.fill = self.header_fill
+                cell.border = self.border
+                cell.alignment = self.center_align
+        return last_row + 1
     
-    def generate_report(self, report_data: ReportDataProtocol) -> bytes:
-        """生成提取罐报表 - 接受任何包含必要属性的对象"""
+    # 添加报表数据
+    def _add_data(self, ws: Worksheet, data: pd.DataFrame, start_row: int) -> int:
+        current_row = start_row
+        if data is None or data.empty:
+            return current_row
+        rows_cnt, cols_cnt = data.shape
+        rows = dataframe_to_rows(data, index=False, header=False)
+        for row in rows:
+            ws.append(row)
+        last_row = current_row + rows_cnt - 1
+        for row in ws.iter_rows(min_row=current_row, max_row=last_row, min_col=1, max_col=cols_cnt):
+            for cell in row:
+                cell.font = self.data_font
+                cell.border = self.border
+                cell.alignment = self.center_align
+        return last_row + 1
+
+
+class TQReportGenerator(BaseReport):
+    def generate_report(self, device_name: str, report_data: list[pd.DataFrame]) -> bytes:
         wb = Workbook()
         ws = wb.active
-        if ws is None:
-            raise ValueError("无法创建工作表")
-        
-        ws.title = "提取罐生产报表"
+        self.title = f"提取车间自控报表--{device_name}"
         
         # 报表标题
         current_row = self._add_title(ws, "提取罐生产报表")

@@ -1,16 +1,38 @@
 import streamlit as st
-from database import get_session
-from models import T_Batch, T_Device_Info, T_Device_Type, T_TQ_Batch_Archive, T_Device_Batch
-from sqlmodel import select
+from database_config import DatabaseConfig
+from models import TBatch, TDeviceInfo, TDeviceType, TTQBatchArchive, TDeviceBatch
+from sqlalchemy import select
 import pandas as pd
+import get_data
+from clean_data import get_report_template_dataframe
+
+
+db_host: str = st.secrets.db_conn.get('db_host')
+db_port: str = st.secrets.db_conn.get('db_port')
+db_name: str = st.secrets.db_conn.get('db_name')
+db_username: str = st.secrets.db_conn.get('db_username')
+db_password: str = st.secrets.db_conn.get('db_password')
+database = DatabaseConfig(db_host, db_port, db_name, db_username, db_password)
 
 # 配置页面
 st.set_page_config(
     page_title="批次报表生成器",
-    page_icon="📊",
+    page_icon=".streamlit/icon.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# st.markdown("""
+#     <style>
+#         .reportview-container {
+#             margin-top: -2em;
+#         }
+#         #MainMenu {visibility: hidden;}
+#         .stDeployButton {display:none;}
+#         footer {visibility: hidden;}
+#         #stDecoration {display:none;}
+#     </style>
+# """, unsafe_allow_html=True)
 
 # 标题
 st.title("📊 批次报表生成器")
@@ -39,9 +61,9 @@ if menu_option == "批次查询":
         if st.button("查询批次"):
             if batch_number:
                 try:
-                    with get_session() as session:
+                    with database.get_session() as session:
                         # 查询批次信息
-                        batch = session.get(T_Batch, batch_number)
+                        batch = session.get(TBatch, batch_number)
                         if batch:
                             st.success(f"找到批次: {batch_number}")
                             
@@ -69,11 +91,11 @@ if menu_option == "批次查询":
     with col2:
         st.subheader("批次列表")
         try:
-            with get_session() as session:
+            with database.get_session() as session:
                 # 获取最近的批次
-                statement = select(T_Batch).limit(10)
-                batches = session.exec(statement).all()
-                
+                statement = select(TBatch).limit(10)
+                batches = session.execute(statement).all()
+
                 if batches:
                     batch_list = []
                     for batch in batches:
@@ -94,30 +116,24 @@ if menu_option == "批次查询":
 
 elif menu_option == "设备状态":
     st.header("🏭 设备状态")
-    
     try:
-        with get_session() as session:
-            # 获取设备信息
-            statement = select(T_Device_Info, T_Device_Type.type_name).join(T_Device_Type)
-            results = session.exec(statement).all()
-            
-            if results:
-                device_list = []
-                for device_info, type_name in results:
-                    device_list.append({
-                        "设备ID": device_info.device_id,
-                        "设备名称": device_info.device_name,
-                        "设备类型": type_name,
-                        "当前产品": device_info.product_name or "无",
-                        "当前批次": device_info.batch_number or "无",
-                        "设备状态": device_info.device_state or "未知"
-                    })
-                
-                df = pd.DataFrame(device_list)
-                st.dataframe(df, use_container_width=True)
-            else:
-                st.info("暂无设备数据")
-                
+        results = get_data.get_device_info(database)
+        if results is not None and not results.empty:
+            column_config = {
+                "device_id": "设备编号",
+                "type_name": "设备类型",
+                "device_name": "设备名称",
+                "product_name": "产品名称",
+                "batch_number": "批次号",
+                "device_state": "设备状态"
+            }
+            st.success("设备状态数据加载成功")
+            st.dataframe(results,
+                         use_container_width=True,
+                         hide_index=True,
+                         column_config=column_config)
+        else:
+            st.info("暂无设备数据")
     except Exception as e:
         st.error(f"获取设备状态失败: {e}")
 
@@ -130,7 +146,7 @@ elif menu_option == "报表生成":
         st.subheader("报表配置")
         
         # 选择设备
-        device_id = st.number_input("设备ID", min_value=1, value=1)
+        device_id = st.number_input("设备编号", min_value=1, value=1)
         
         # 手动输入批次号
         batch_number = st.text_input("批次号", placeholder="请输入要查询的批次号")
@@ -142,32 +158,34 @@ elif menu_option == "报表生成":
         )
         
         if st.button("生成报表"):
-            if not batch_number:
+            if not device_id:
+                st.warning("请输入设备编号")
+            elif not batch_number:
                 st.warning("请输入批次号")
             elif report_type == "提取罐报表":
                 try:
-                    with get_session() as session:
+                    with database.get_session() as session:
                         # 先查询设备批次ID
-                        device_batch_statement = select(T_Device_Batch).where(
-                            (T_Device_Batch.device_id == device_id) & 
-                            (T_Device_Batch.batch_number == batch_number)
+                        device_batch_statement = select(TDeviceBatch).where(
+                            (TDeviceBatch.device_id == device_id) & 
+                            (TDeviceBatch.batch_number == batch_number)
                         )
-                        device_batch = session.exec(device_batch_statement).first()
+                        device_batch = session.execute(device_batch_statement).first()
                         
                         if not device_batch:
-                            st.warning(f"未找到设备ID {device_id} 和批次号 {batch_number} 的关联记录")
+                            st.warning(f"未找到设备编号 {device_id} 和批次号 {batch_number} 的关联记录")
                         else:
                             # 查询归档数据
-                            archive_statement = select(T_TQ_Batch_Archive).where(
-                                T_TQ_Batch_Archive.device_batch_id == device_batch.device_batch_id
+                            archive_statement = select(TTQBatchArchive).where(
+                                TTQBatchArchive.device_batch_id == device_batch.device_batch_id
                             )
-                            archive_data = session.exec(archive_statement).first()
+                            archive_data = session.execute(archive_statement).first()
                             
                             # 查询设备信息
-                            device_info = session.get(T_Device_Info, device_id)
+                            device_info = session.get(TDeviceInfo, device_id)
                             
                             # 查询批次信息
-                            batch_info = session.get(T_Batch, batch_number)
+                            batch_info = session.get(TBatch, batch_number)
                             
                             if archive_data and device_info and batch_info:
                                 st.success("报表数据加载成功")
@@ -320,6 +338,6 @@ elif menu_option == "数据管理":
 
 # 页脚
 st.markdown("---")
-st.markdown("© 2025 批次报表生成器 - 基于 Streamlit + SQLModel 构建")
+st.markdown("© 2025 批次报表生成器")
 
 

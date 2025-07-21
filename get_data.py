@@ -1,25 +1,81 @@
-from database import Database_Config
-from models import T_Device_Type, T_Device_Info, T_Batch, T_Device_Batch, T_TQ_Batch_Realtime, T_TQ_Batch_Archive
+from database_config import DatabaseConfig
+from models import TDeviceType, TDeviceInfo, TBatch, TDeviceBatch, TTQBatchRealtime, TTQBatchArchive, TSXBatchArchive
+from models import get_archive_table_class
 import pandas as pd
-from sqlmodel import select, text
-from typing import Optional, Any, cast
+from sqlalchemy import select, text
 
 
-def get_device_info(database_config: Database_Config):
+def get_device_type(database_config: DatabaseConfig):
     with database_config.get_session() as session:
-        query = text(f"select \
-                     T_Device_Type.type_name as type_name,\
-                     device_name, device_id, product_name, batch_number, device_state\
-                     from T_Device_Info\
-                     join T_Device_Type on T_Device_Info.device_type_id = T_Device_Type.device_type_id\
-                     order by T_Device_Info.device_type_id, T_Device_Info.device_id")
-        # device_info = (
-        #     select(T_Device_Info.device_id,
-        #            T_Device_Type.type_name,
-        #            T_Device_Info.device_name,
-        #            T_Device_Info.product_name,
-        #            T_Device_Info.batch_number,
-        #            T_Device_Info.device_state)
-        #     .join(T_Device_Type, T_Device_Info.device_type_id == T_Device_Type.device_type_id)
-        # )
-        return pd.read_sql(query, session.connection())
+        device_type_query = (
+            select(TDeviceType.device_type_id,
+                   TDeviceType.type_name)
+            .order_by(TDeviceType.device_type_id)
+        )
+        return pd.read_sql(device_type_query, session.connection())
+
+def get_device_list(database_config: DatabaseConfig, device_type_id: int = 0):
+    with database_config.get_session() as session:
+        device_list_query = (
+            select(TDeviceInfo.device_id,
+                TDeviceInfo.device_name)
+            .where(TDeviceInfo.device_type_id == device_type_id)
+            .order_by(TDeviceInfo.device_id)
+        )
+        return pd.read_sql(device_list_query, session.connection())
+
+def get_device_info(database_config: DatabaseConfig):
+    with database_config.get_session() as session:
+        device_info_query = (
+            select(TDeviceType.type_name,
+                TDeviceInfo.device_id,
+                TDeviceInfo.device_name,
+                TDeviceInfo.product_name,
+                TDeviceInfo.batch_number,
+                TDeviceInfo.device_state)
+            .join(TDeviceType, TDeviceInfo.device_type_id == TDeviceType.device_type_id)
+            .order_by(TDeviceInfo.device_type_id, TDeviceInfo.device_id)
+        )
+        return pd.read_sql(device_info_query, session.connection())
+
+def get_batch_info(database_config: DatabaseConfig):
+    with database_config.get_session() as session:
+        batch_info_query = (
+            select(TBatch.batch_number,
+                   TBatch.product_name,
+                   TBatch.start_time,
+                   TBatch.end_time,
+                   TBatch.batch_state)
+            .order_by(TBatch.start_time.desc())
+        )
+        return pd.read_sql(batch_info_query, session.connection())
+    
+def get_report_data(database_config: DatabaseConfig, batch_number: str, device_id: int):
+    with database_config.get_session() as session:
+        report_table_name_query = (
+            select(TDeviceType.archive_table_name)
+            .join(TDeviceInfo, TDeviceInfo.device_type_id == TDeviceType.device_type_id)
+            .where(TDeviceInfo.device_id == device_id)
+        )
+        report_table_name_str = session.execute(report_table_name_query).scalar_one_or_none()
+        if not report_table_name_str:
+            raise ValueError(f"未找到设备ID {device_id} 的报表表名")
+        report_table_name = get_archive_table_class(report_table_name_str)
+
+        device_batch_id_query = (
+            select(TDeviceBatch.device_batch_id)
+            .where(TDeviceBatch.device_id == device_id, TDeviceBatch.batch_number == batch_number)
+        )
+        device_batch_id = session.execute(device_batch_id_query).scalar_one_or_none()
+        if not device_batch_id:
+            raise ValueError(f"设备ID {device_id}  批次号 {batch_number}  设备批次不存在")
+        
+        report_data_query = (
+            select(report_table_name)
+            .where(report_table_name.device_batch_id == device_batch_id)
+        )
+        report_data_df = pd.read_sql(report_data_query, session.connection())
+        if report_data_df.empty:
+            raise ValueError(f"设备ID {device_id}  批次号 {batch_number}  报表数据不存在")
+        
+        return report_data_df
