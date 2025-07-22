@@ -164,8 +164,8 @@ class DataCleaner:
 
 # 提取罐数据清洗
 class TQDataCleaner:
-    @classmethod
-    def clean_dataframe(cls, raw_df: pd.DataFrame) -> TQReportData:
+    @staticmethod
+    def clean_dataframe(raw_df: pd.DataFrame) -> TQReportData:
         if raw_df.empty:
             raise ValueError('提取罐报表数据为空！')
         data_dict = raw_df.iloc[0].to_dict()
@@ -209,8 +209,8 @@ class TQDataCleaner:
     
 # 双效浓缩器数据清洗
 class SXDataCleaner:
-    @classmethod
-    def clean_dataframe(cls, raw_df: pd.DataFrame) -> SXReportData:
+    @staticmethod
+    def clean_dataframe(raw_df: pd.DataFrame) -> SXReportData:
         if raw_df.empty:
             raise ValueError('双效浓缩器报表数据为空！')
         data_dict = raw_df.iloc[0].to_dict()
@@ -241,7 +241,7 @@ class DataCleanerFactory:
 
 class TQReportTemplateProcessor:
     @staticmethod
-    def create_report_template_dataframe(data: TQReportData) -> list[pd.DataFrame]:
+    def create_report_template_dataframe(data: TQReportData) -> dict[str, pd.DataFrame]:
         if not isinstance(data, TQReportData):
             raise ValueError("数据类型不匹配，必须是提取罐报表")
         header_rows = [
@@ -330,12 +330,17 @@ class TQReportTemplateProcessor:
                 'col6': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         ]
-        template_df = [pd.DataFrame(rows) for rows in [header_rows, p1_set_rows, p1_record_rows, footer_rows]]
+        main_rows = [p1_set_rows, p1_record_rows]
+
+        template_df = {}
+        template_df['header'] = [pd.DataFrame(header_rows)]
+        template_df['footer'] = [pd.DataFrame(footer_rows)]
+        template_df['main'] = [pd.DataFrame(rows) for rows in main_rows]
         return template_df
 
 class SXReportTemplateProcessor:
     @staticmethod
-    def create_report_template_dataframe(data: SXReportData) -> list[pd.DataFrame]:
+    def create_report_template_dataframe(data: SXReportData) -> dict[str, pd.DataFrame]:
         if not isinstance(data, SXReportData):
             raise ValueError("数据类型不匹配，必须是双效浓缩器报表")
         rows = [
@@ -343,24 +348,26 @@ class SXReportTemplateProcessor:
                 # 双效浓缩器报表内容
             }
         ]
-        template_df = [pd.DataFrame(row) for row in rows]
+        template_df = {}
         return template_df
 
 class ReportTemplateProcessor:
-    @staticmethod
-    def convert_to_template_df(cleaned_data) -> list[pd.DataFrame]:
-        if isinstance(cleaned_data, TQReportData):
-            return TQReportTemplateProcessor.create_report_template_dataframe(cleaned_data)
-        elif isinstance(cleaned_data, SXReportData):
-            return SXReportTemplateProcessor.create_report_template_dataframe(cleaned_data)
-        else:
-            raise ValueError(f"不支持的报表类型: {type(cleaned_data)}")
+    PROCESSOR_MAPPING: dict[str, type] = {
+        "T_TQ_Batch_Archive": TQReportTemplateProcessor,
+        "T_SX_Batch_Archive": SXReportTemplateProcessor
+    }
 
-def convert_cleaned_data_to_template_df(cleaned_data) -> list[pd.DataFrame]:
-    return ReportTemplateProcessor.convert_to_template_df(cleaned_data)
+    @classmethod
+    def convert_to_template_df(cls, cleaned_data, table_name: str) -> dict[str, pd.DataFrame]:
+            processor = cls.PROCESSOR_MAPPING.get(table_name)
+            if processor:
+                return processor.create_report_template_dataframe(cleaned_data)
+            else:
+                raise ValueError(f"不支持的报表类型: {table_name}")
+
 
 # 工厂方法，供外部调用
-def get_report_template_dataframe(table_name: str, raw_df: pd.DataFrame) -> list[pd.DataFrame]:
+def get_report_template_dataframe(table_name: str, raw_df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     cleaned_data = DataCleanerFactory.clean_dataframe(table_name, raw_df)
-    template_df = convert_cleaned_data_to_template_df(cleaned_data)
+    template_df = ReportTemplateProcessor.convert_to_template_df(cleaned_data, table_name)
     return template_df

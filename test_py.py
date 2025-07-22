@@ -23,34 +23,6 @@ database_config = DatabaseConfig("124.71.179.195", "1433", "Kangde_Test", "sa", 
 # device_list = get_device_list(database_config, 3)
 # print(device_list) if device_list is not None else print("获取设备列表失败")
 
-# rows = [
-#     {
-#         'col1': '品名',
-#         'col2': '红花',
-#         'col3': '批号',
-#         'col4': 'TZ25071801',
-#         'col5': '批量',
-#         'col6': '100',
-#     },
-#     {
-#         'col1': '设备名称',
-#         'col2': '1#提取罐',
-#         'col3': '设备编号',
-#         'col4': '1',
-#         'col5': '开始时间',
-#         'col6': '2025-07-18 10:00:00',
-#         'col7': '结束时间',
-#         'col8': '2025-07-18 12:00:00'
-#     },
-#     {
-#         'col1': '升温压力设定',
-#         'col2': '1.0',
-#         'col3': '保温压力设定',
-#         'col4': '1.5',
-#         'col5': '加溶媒量',
-#         'col6': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#     }
-# ]
 rows1 = [
     {
         'col1': '品名',
@@ -89,14 +61,5 @@ rows2 = [
         'col6': 120.0
     }
 ]
-template_df1 = pd.DataFrame(rows1)
-template_df2 = pd.DataFrame(rows2)
 
-wb = load_workbook("/Users/lins/Desktop/test_template1.xlsx")
-ws = wb.active
-for row in dataframe_to_rows(template_df1, index=False):
-    ws.append(row)
-for row in dataframe_to_rows(template_df2, index=False, header=False):
-    ws.append(row)
-wb.save("/Users/lins/Desktop/test_template1.xlsx")
 
