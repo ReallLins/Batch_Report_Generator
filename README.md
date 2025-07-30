@@ -1,13 +1,12 @@
 # 批次报表生成器 (Batch Report Generator)
 
-基于 Streamlit + SQLModel 构建的批次报表生成系统，用于中药提取车间的DCS数据管理和报表生成。
+基于 Streamlit + SQLAlchemy 构建的批次报表生成系统，用于中药提取车间的DCS数据管理和报表生成。
 
 ## 🎯 系统特色
 
-- **📊 统一数据源**: 取消了单独的报表表，所有报表数据均从 `T_TQ_Batch_Archive` 归档表动态查询
-- **🔍 精确查询**: 支持按设备ID和批次号精确查询历史批次数据
-- **📈 实时报表**: 支持手动输入批次号生成实时报表，无需预先生成报表数据
+- **📊 统一数据源**: 所有报表数据按设备类型存放在 `T_XX_Batch_Archive` 归档表
 - **🏭 设备监控**: 实时监控设备运行状态和批次进度
+- **🔍 精确查询**: 支持按设备ID和批次号精确查询历史批次数据
 - **📥 Excel导出**: 自动生成格式化的Excel报表，支持一键下载
 
 ## 功能特性
@@ -20,9 +19,9 @@
 
 ## 技术栈
 
-- **后端**: Python 3.8+
+- **后端**: Python 3.13.5
 - **Web框架**: Streamlit
-- **ORM**: SQLModel (基于SQLAlchemy)
+- **ORM**: SQLAlchemy
 - **数据库**: Microsoft SQL Server
 - **数据处理**: Pandas
 - **Excel处理**: openpyxl
@@ -31,18 +30,18 @@
 
 系统包含以下主要表：
 
-- `T_Batch`: 批次主表
 - `T_Device_Type`: 设备类型表
 - `T_Device_Info`: 设备信息表
+- `T_Batch`: 批次主表
 - `T_Device_Batch`: 设备批次关联表
-- `T_TQ_Batch_Realtime`: 提取罐实时数据表
-- `T_TQ_Batch_Archive`: 提取罐归档数据表（**主要报表数据源**）
+- `T_XX_Batch_Realtime`: 设备批次数据实时表
+- `T_XX_Batch_Archive`: 设备批次数据归档表（**主要报表数据源**）
 
 ### 🔄 数据流程
 
 1. **数据采集**: 实时数据写入 `T_TQ_Batch_Realtime` 表
 2. **数据归档**: 批次完成后数据归档到 `T_TQ_Batch_Archive` 表
-3. **报表生成**: 根据设备ID和批次号从归档表动态查询数据生成报表
+3. **报表生成**: 根据设备ID和批次号从设备批次关联表查询关联ID，从归档表动态查询数据生成报表
 
 ## 快速开始
 
@@ -106,7 +105,7 @@ streamlit run main.py
 ```
 用户界面 (Streamlit)
     ↓
-业务逻辑 (main.py)
+业务逻辑 (app.py)
     ↓
 数据模型 (models.py) ← → 数据库访问 (database.py)
     ↓
@@ -305,7 +304,7 @@ with get_session() as session:
 
 ## 待实现功能
 
-- [ ] Excel 报表导出功能
+- [ ] 报表自定义功能
 - [ ] 更多设备类型支持（单效、双效、醇沉等）
 - [ ] 数据可视化图表
 - [ ] 用户权限管理
@@ -330,4 +329,4 @@ with get_session() as session:
 
 ---
 
-© 2025 批次报表生成器 - 基于 Streamlit + SQLModel 构建
+© 2025 批次报表生成器 - 基于 Streamlit + SQLAlchemy 构建

@@ -1,0 +1,25 @@
+# .streamlit/pages.toml
+# ⚠️ 路径写相对项目根目录的文件路径
+
+# ------- 隐藏真正的入口页 -------
+[[pages]]
+path      = "app.py"      # 必须写，否则 Streamlit 会认为它是未知页面
+name      = "入口"
+icon      = "🚪"
+is_hidden = true          # 关键！不会出现在侧边栏
+
+# ------- 业务页：想让用户看到的 -------
+[[pages]]
+path = "pages/device_state.py"
+name = "设备状态"
+icon = "🚪"
+
+[[pages]]
+path = "pages/batch_query.py"
+name = "批次查询"
+icon = "🚪"
+
+[[pages]]
+path = "pages/report_generate.py"
+name = "报表生成"
+icon = "🚪"

@@ -241,9 +241,9 @@ class DataCleanerFactory:
 
 class TQReportTemplateProcessor:
     @staticmethod
-    def create_report_template_dataframe(data: TQReportData) -> dict[str, pd.DataFrame]:
+    def create_report_template_dataframe(data: TQReportData) -> dict[str, Any]:
         if not isinstance(data, TQReportData):
-            raise ValueError("数据类型不匹配，必须是提取罐报表")
+            raise ValueError("设备类型不匹配，必须是提取罐类型")
         header_rows = [
             {
                 'col1': '品名',
@@ -257,11 +257,13 @@ class TQReportTemplateProcessor:
                 'col1': '设备名称',
                 'col2': data.device_name,
                 'col3': '设备编号',
-                'col4': data.device_id,
-                'col5': '开始时间',
-                'col6': data.device_batch_start_time,
-                'col7': '结束时间',
-                'col8': data.device_batch_end_time
+                'col4': data.device_id
+            },
+            {
+                'col1': '开始时间',
+                'col2': data.device_batch_start_time,
+                'col3': '结束时间',
+                'col4': data.device_batch_end_time
             }
         ]
         p1_set_rows = [
@@ -330,12 +332,31 @@ class TQReportTemplateProcessor:
                 'col6': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         ]
-        main_rows = [p1_set_rows, p1_record_rows]
-
-        template_df = {}
-        template_df['header'] = [pd.DataFrame(header_rows)]
-        template_df['footer'] = [pd.DataFrame(footer_rows)]
-        template_df['main'] = [pd.DataFrame(rows) for rows in main_rows]
+        # 返回标准化的数据结构
+        template_df = {
+            'sections': [
+                {
+                    'title': '基本信息',
+                    'type': 'info',
+                    'data': pd.DataFrame(header_rows)
+                },
+                {
+                    'title': '一次参数设置',
+                    'type': 'parameters',
+                    'data': pd.DataFrame(p1_set_rows)
+                },
+                {
+                    'title': '一次煎煮记录',
+                    'type': 'records',
+                    'data': pd.DataFrame(p1_record_rows)
+                },
+                {
+                    'title': '其他信息',
+                    'type': 'summary',
+                    'data': pd.DataFrame(footer_rows)
+                }
+            ]
+        }
         return template_df
 
 class SXReportTemplateProcessor:
@@ -358,7 +379,7 @@ class ReportTemplateProcessor:
     }
 
     @classmethod
-    def convert_to_template_df(cls, cleaned_data, table_name: str) -> dict[str, pd.DataFrame]:
+    def convert_to_template_df(cls, cleaned_data, table_name: str) -> dict[str, Any]:
             processor = cls.PROCESSOR_MAPPING.get(table_name)
             if processor:
                 return processor.create_report_template_dataframe(cleaned_data)
@@ -367,7 +388,7 @@ class ReportTemplateProcessor:
 
 
 # 工厂方法，供外部调用
-def get_report_template_dataframe(table_name: str, raw_df: pd.DataFrame) -> dict[str, pd.DataFrame]:
+def get_report_template_dataframe(table_name: str, raw_df: pd.DataFrame) -> dict[str, Any]:
     cleaned_data = DataCleanerFactory.clean_dataframe(table_name, raw_df)
     template_df = ReportTemplateProcessor.convert_to_template_df(cleaned_data, table_name)
     return template_df

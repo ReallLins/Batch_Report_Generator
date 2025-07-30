@@ -10,7 +10,7 @@ from datetime import datetime
 
 
 class BaseReport:
-    def __init__(self, column_num: int):
+    def __init__(self):
         self.workbook_name = '' # 文件名
         self.worksheet_name = '' # 工作表名
         self.file_path = f'{self.workbook_name}.xlsx'  # 默认文件路径
@@ -32,7 +32,7 @@ class BaseReport:
             top=Side(style='thin', color=self.color),
             bottom=Side(style='thin', color=self.color)
         )
-        self.column_num = column_num
+        self.column_num = 1
         # self.workbook = Workbook()
         # self.worksheet = self.workbook.active
         # 添加填充色
@@ -49,24 +49,33 @@ class BaseReport:
 
     # 添加报表标题
     def _add_title(self, ws: Worksheet) -> int:
+        # 设置待合并单元格边框
+        # for row in ws.iter_rows(min_row=1, max_row=1, min_col=1, max_col=self.column_num):
+        #     for cell in row:
+        #         cell.border = self.border
+        for cell in ws[1][0:self.column_num]:
+            cell.border = self.border
         ws.merge_cells(start_row=1, end_row=1, start_column=1, end_column=self.column_num)
         title_cell: Cell = ws['A1']
         title_cell.value = self.title
         title_cell.font = self.title_font
         title_cell.fill = self.title_fill
-        title_cell.border = self.border
         title_cell.alignment = self.center_align
         return 2  # 返回下一行的位置
 
     # 添加小标题
     def _add_header_title(self, ws: Worksheet, header_title: str, start_row: int) -> int:
         current_row = start_row
+        # for row in ws.iter_rows(min_row=current_row, max_row=current_row, min_col=1, max_col=self.column_num):
+        #     for cell in row:
+        #         cell.border = self.border
+        for cell in ws[current_row][0:self.column_num]:
+            cell.border = self.border
         ws.merge_cells(start_row=current_row, end_row=current_row, start_column=1, end_column=self.column_num)
         header_cell: Cell = ws[f'A{current_row}']
         header_cell.value = header_title
         header_cell.font = self.header_font
         header_cell.fill = self.header_fill
-        header_cell.border = self.border
         header_cell.alignment = self.center_align
         return current_row + 1
 
@@ -76,7 +85,7 @@ class BaseReport:
         if header_footer_data is None or header_footer_data.empty:
             return current_row
         rows_cnt, cols_cnt = header_footer_data.shape
-        rows = dataframe_to_rows(header_footer_data, index=False, header=True)
+        rows = dataframe_to_rows(header_footer_data, index=False, header=False)
         for row in rows:
             ws.append(row)
         last_row = current_row + rows_cnt - 1
@@ -108,9 +117,9 @@ class BaseReport:
 
 class TQReportGenerator(BaseReport):
     def __init__(self):
-        self.column_num = 8
-
+        super().__init__()
     def generate_report(self, device_name: str, report_data: dict[str, list[pd.DataFrame]]) -> bytes:
+        self.column_num = 6
         wb, ws = self._create_workbook()
         self.title = f"提取车间自控报表--{device_name}"
         # 报表标题
@@ -166,7 +175,7 @@ class ReportGeneratorFactory:
             raise ValueError(f"不支持的报表类型: {table_name}")
 
 # 工厂方法，供外部调用
-def get_report(report_data, table_name: str, device_name: str) -> bytes:
+def get_report(report_data: dict[str, list[pd.DataFrame]], table_name: str, device_name: str) -> bytes:
     generator = ReportGeneratorFactory.create_report_generator(table_name)
     report = generator.generate_report(device_name, report_data)
     return report
