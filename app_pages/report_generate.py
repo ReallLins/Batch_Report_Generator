@@ -1,8 +1,6 @@
 import streamlit as st
+from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, StAggridTheme
 from database_config import get_database_config
-from models import TBatch, TDeviceInfo, TDeviceType, TTQBatchArchive, TDeviceBatch
-from sqlalchemy import select
-import pandas as pd
 from get_data import get_device_type_tuple, get_device_tuple, get_report_data_df
 from clean_data import get_report_template_dataframe
 from report import get_report
@@ -53,7 +51,6 @@ from report import get_report
 #         """
 #     html_table += "</table></div>"
 #     st.html(html_table)
-
 
 def render_report_sections(report_data):
     for section in report_data['sections']:
@@ -148,11 +145,11 @@ def page():
         else:
             report_data_df = get_report_data_df(database, batch_number, device_id)
             if report_data_df is None or report_data_df.empty:
-                st.warning("未找到相关报表数据")
+                st.info("未找到相关报表数据")
                 return
             report_template_df = get_report_template_dataframe('T_TQ_Batch_Archive', report_data_df)
             if report_template_df is None or not report_template_df:
-                st.warning("报表数据为空")
+                st.info("报表数据为空")
                 return
             # 使用通用渲染函数显示报表
             render_report_sections(report_template_df)

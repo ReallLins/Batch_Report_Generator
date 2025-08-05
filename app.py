@@ -7,7 +7,7 @@ from app_pages import device_state, batch_query, report_generate
 # batch_query_page = st.Page('pages/batch_query.py', title='批次查询', icon=':material/manage_search:')
 # report_generate_page = st.Page('pages/report_generate.py', title='报表生成', icon=':material/table_convert:')
 # pg = st.navigation([device_state_page, batch_query_page, report_generate_page])
-st.set_page_config(page_title='批次报表工具', page_icon='icons/main_icon.png')
+st.set_page_config(page_title='批次报表工具', page_icon='icons/main_icon.png', layout='wide')
 # pg.run()
 
 # with st.sidebar:
@@ -20,7 +20,7 @@ st.set_page_config(page_title='批次报表工具', page_icon='icons/main_icon.p
 pages = [
     {'page': device_state.page, 'title': '设备状态', 'icon': 'gear'},
     {'page': batch_query.page, 'title': '批次查询', 'icon': 'card-list'},
-    {'page': report_generate.page, 'title': '报表生成', 'icon': 'file-earmark-spreadsheet'}
+    {'page': report_generate.page, 'title': '报表生成', 'icon': 'file-earmark-spreadsheet'},
 ]
 titles = [p['title'] for p in pages]
 icons = [p['icon'] for p in pages]

@@ -97,3 +97,53 @@ def get_device_tuple(database_config: DatabaseConfig, device_type_id: int = 0) -
     device_df = get_device_df(database_config, device_type_id)
     device_tuple = list(zip(device_df['device_id'], device_df['device_name']))
     return device_tuple
+
+# 条件联合查询批次
+def get_search_batchs_data(
+        database_config: DatabaseConfig,
+        batch_number: str,
+        device_id: int,
+        start_time: str | None,
+        end_time: str | None,
+        realtime: bool) -> tuple[pd.DataFrame, pd.DataFrame]:
+    batch_query = """
+        SELECT  b.batch_number,
+                b.product_name,
+                b.start_time,
+                b.end_time,
+                b.batch_state,
+                di.device_id,
+                di.device_name,
+                di.device_state
+        FROM    T_Batch b
+        LEFT JOIN T_Device_Batch db ON b.batch_number = db.batch_number
+        LEFT JOIN T_Device_Info di ON db.device_id = di.device_id
+        WHERE 1=1
+    """
+    params = {}
+    if batch_number:
+        batch_query += " AND b.batch_number LIKE %(batch_number)s"
+        params['batch_number'] = batch_number
+    if device_id:
+        batch_query += " AND di.device_id = %(device_id)s"
+        params['device_id'] = device_id
+    if start_time:
+        batch_query += " AND b.start_time >= %(start_time)s"
+        params['start_time'] = start_time
+    if end_time:
+        batch_query += " AND (b.end_time <= %(end_time)s OR b.end_time IS NULL)"
+        params['end_time'] = end_time
+    if realtime:
+        batch_query += " AND b.end_time IS NULL"
+    else:
+        batch_query += " AND b.end_time IS NOT NULL"
+    batch_query += " ORDER BY b.start_time DESC"
+    with database_config.get_session() as session:
+        result = pd.read_sql(batch_query, session.connection(), params=params)
+        if result.empty:
+            return pd.DataFrame(), pd.DataFrame()
+        batch_cols = ["batch_number", "product_name", "start_time", "end_time", "batch_state"]
+        batch_df  = result[batch_cols].drop_duplicates().reset_index(drop=True)
+        device_cols = ["product_name", "start_time", "end_time", "batch_state"]
+        device_df = result.drop(columns=device_cols)
+        return batch_df, device_df
