@@ -113,6 +113,55 @@ class BaseReport:
                 cell.border = self.border
                 cell.alignment = self.center_align
         return last_row + 1
+    
+    def _adjust_column_widths(self, ws: Worksheet, strategy: str = 'fixed', custom_width: int = 0) -> None:
+        """
+        调整工作表列宽
+        
+        Args:
+            ws: 工作表对象
+            strategy: 调整策略 ('auto', 'custom', 'fixed')
+            min_width: 最小列宽
+            max_width: 最大列宽  
+            custom_widths: 自定义列宽字典，如 {'A': 15, 'B': 20}
+        """
+        try:
+            # if strategy == 'custom' and custom_width:
+            #     # 使用自定义列宽
+            #     for column_letter, width in custom_widths.items():
+            #         ws.column_dimensions[column_letter].width = width
+            
+            # elif strategy == 'fixed':
+                # 固定列宽
+            default_width = custom_width if custom_width > 0 else 20
+            for i in range(1, self.column_num + 1):
+                column_letter = chr(64 + i)
+                ws.column_dimensions[column_letter].width = default_width
+            
+            # else:  # 'auto' - 自动计算
+            #     for column in ws.columns:
+            #         max_length = 0
+            #         column_letter = column[0].column_letter
+                    
+            #         for cell in column:
+            #             if cell.value:
+            #                 # 计算内容长度，考虑中文字符
+            #                 content = str(cell.value)
+            #                 # 中文字符计算（占用更多空间）
+            #                 chinese_chars = len([c for c in content if '\u4e00' <= c <= '\u9fff'])
+            #                 length = len(content) + chinese_chars * 0.5
+                            
+            #                 max_length = max(max_length, length)
+                    
+            #         # 应用最小和最大宽度限制
+            #         adjusted_width = max(min_width, min(max_length + 2, max_width))
+            #         ws.column_dimensions[column_letter].width = adjusted_width
+                    
+        except:
+            # 异常处理：设置默认列宽
+            for i in range(1, self.column_num + 1):
+                column_letter = chr(64 + i)
+                ws.column_dimensions[column_letter].width = 20
 
 
 class TQReportGenerator(BaseReport):
@@ -134,26 +183,12 @@ class TQReportGenerator(BaseReport):
             current_row = self._add_header_title(ws, title, current_row)
             current_row = self._add_data(ws, data, current_row)
         # footer_info
+        footer_title = '其他信息'
         footer_info = report_data['footer'][0]
+        current_row = self._add_header_title(ws, footer_title, current_row)
         self._add_header_footer_info(ws, footer_info, current_row)
-        
-        # # 调整列宽
-        # try:
-        #     # 简化的列宽调整
-        #     for i, col in enumerate(ws.columns, 1):
-        #         max_length = 0
-        #         column_letter = chr(64 + i)  # 简单地使用 A, B, C...
-        #         for cell in col:
-        #             try:
-        #                 if cell.value and len(str(cell.value)) > max_length:
-        #                     max_length = len(str(cell.value))
-        #             except:
-        #                 pass
-        #         adjusted_width = min(max_length + 2, 50)
-        #         ws.column_dimensions[column_letter].width = adjusted_width
-        # except Exception:
-        #     # 如果调整列宽失败，忽略错误
-        #     pass
+        # 调整列宽
+        self._adjust_column_widths(ws, custom_width=20)
         
         # 保存到内存
         buffer = BytesIO()

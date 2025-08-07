@@ -85,7 +85,7 @@ def get_report_data_df(database_config: DatabaseConfig, batch_number: str, devic
         if report_data_df.empty:
             raise ValueError(f"设备ID {device_id}  批次号 {batch_number}  报表数据不存在")
         
-        return report_data_df
+        return report_table_name_str, report_data_df
 
 # 获取下拉框使用的(id, name)元组列表
 def get_device_type_tuple(database_config: DatabaseConfig) -> list[tuple]:
@@ -114,7 +114,9 @@ def get_search_batchs_data(
                 b.batch_state,
                 di.device_id,
                 di.device_name,
-                di.device_state
+                di.device_state,
+                db.start_time AS device_batch_start_time,
+                db.end_time AS device_batch_end_time
         FROM    T_Batch b
         LEFT JOIN T_Device_Batch db ON b.batch_number = db.batch_number
         LEFT JOIN T_Device_Info di ON db.device_id = di.device_id
@@ -143,7 +145,7 @@ def get_search_batchs_data(
         if result.empty:
             return pd.DataFrame(), pd.DataFrame()
         batch_cols = ["batch_number", "product_name", "start_time", "end_time", "batch_state"]
-        batch_df  = result[batch_cols].drop_duplicates().reset_index(drop=True)
+        batch_df = result[batch_cols].drop_duplicates().reset_index(drop=True)
         device_cols = ["product_name", "start_time", "end_time", "batch_state"]
         device_df = result.drop(columns=device_cols)
         return batch_df, device_df

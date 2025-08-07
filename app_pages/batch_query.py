@@ -1,15 +1,28 @@
 import streamlit as st
-import pandas as pd
 from database_config import get_database_config
 from get_data import get_search_batchs_data, get_device_type_tuple, get_device_tuple
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, StAggridTheme
-import streamlit.components.v1 as components
+from clean_data import get_formatted_datetime_df
+from st_aggrid import AgGrid, JsCode, StAggridTheme
 import streamlit_antd_components as sac
 import traceback
+import json
 
 
 def render_batch_table(realtime: bool, database, theme: StAggridTheme):
     key_suffix = 'rt' if realtime else 'his'
+
+    DTIME_FORMAT = JsCode(
+            """
+            function(params){
+                if(!params.value || params.value === 'NaT') return '';
+                const v = (params.value instanceof Date)
+                          ? params.value.toISOString().substring(0,19).replace('T',' ')
+                          : String(params.value).replace('T',' ');
+                return v;
+            }
+            """
+    )
+
     with st.container(border=True, key=f"search_container_{key_suffix}"):
         cols1 = st.columns(3, vertical_alignment='bottom')
         cols2 = st.columns(3, vertical_alignment='bottom')
@@ -37,12 +50,19 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                 key=f"device_id_{key_suffix}"
             )
             device_id = device_id_select[0] if device_id_select else 0
-        with cols2[0]:
-            start_time = cols2[0].date_input("**开始日期**", value=None, key=f"start_time_{key_suffix}")
-        with cols2[1]:
-            end_time = cols2[1].date_input("**结束日期**", value=None, key=f"end_time_{key_suffix}")
-        with cols2[2]:
-            search_button = st.button("查询批次", icon=':material/search_insights:', key=f"search_button_{key_suffix}")
+        if realtime:
+            end_time = None
+            with cols2[0]:
+                start_time = st.date_input("**开始日期**", value=None, key=f"start_time_{key_suffix}")
+            with cols2[1]:
+                search_button = st.button("查询批次", icon=':material/search_insights:', key=f"search_button_{key_suffix}")
+        else:
+            with cols2[0]:
+                start_time = st.date_input("**开始日期**", value=None, key=f"start_time_{key_suffix}")
+            with cols2[1]:
+                end_time = st.date_input("**结束日期**", value=None, key=f"end_time_{key_suffix}")
+            with cols2[2]:
+                search_button = st.button("查询批次", icon=':material/search_insights:', key=f"search_button_{key_suffix}")
     with st.container(key=f"batch_container_{key_suffix}"):
         if search_button:
             try:
@@ -57,13 +77,21 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                 if batch_df.empty:
                     st.info("未查询到批次数据")
                     return
-                # grid_options = GridOptionsBuilder.from_dataframe(batch_df)
+                # AG-Grid无法处理时间格式中的NaT，所以提前清洗为None
+                batch_df = get_formatted_datetime_df(batch_df)
+                device_df = get_formatted_datetime_df(device_df)
+                device_df_json = device_df.to_json(orient='records', date_format='iso', date_unit='s')
+                device_df_js = json.dumps(json.loads(device_df_json), ensure_ascii=False)
                 grid_options = {
                     "columnDefs": [
                         {"field": "batch_number", "headerName": "批次编号", "cellRenderer": "agGroupCellRenderer"},
                         {"field": "product_name", "headerName": "产品名称"},
-                        {"field": "start_time", "headerName": "开始时间"},
-                        {"field": "end_time", "headerName": "完成时间"},
+                        {"field": "start_time", "headerName": "开始时间",
+                         "type": ["dateColumnFilter", "customDateTimeFormat"],
+                         "custom_format_string": "yyyy-MM-dd HH:mm:ss"},
+                        {"field": "end_time", "headerName": "完成时间",
+                         "type": ["dateColumnFilter", "customDateTimeFormat"],
+                         "custom_format_string": "yyyy-MM-dd HH:mm:ss"},
                         {"field": "batch_state", "headerName": "批次状态"}
                     ],
                     "pagination": True,
@@ -88,12 +116,16 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                                 {"field": "device_id", "headerName": "设备ID"},
                                 {"field": "device_name", "headerName": "设备名称"},
                                 {"field": "device_state", "headerName": "设备状态"},
+                                {"field": "device_batch_start_time", "headerName": "开始时间",
+                                 "valueFormatter": DTIME_FORMAT},
+                                {"field": "device_batch_end_time", "headerName": "完成时间",
+                                 "valueFormatter": DTIME_FORMAT}
                             ],
                             "pagination": True,
                             "paginationPageSize": 20,
                             "defaultColDef": {
                                 "sortable": False,
-                                "filter": True,
+                                "filter": False,
                                 "resizable": True,
                                 "selectionMode": "single"
                             },
@@ -102,27 +134,20 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                                 'defaultMinWidth': 20
                             }
                         },
-                        # JS 片段告诉 AG-Grid 如何把子表数据喂进去
+                        # JS片段告诉AG-Grid如何把子表数据喂进去
                         "getDetailRowData": JsCode(
                             f"""
                             function(params) {{
                                 // 通过 batch_number 过滤 device_df
-                                const deviceData = {device_df.to_json(orient='records')};
+                                const deviceData = {device_df_js};
                                 const key = params.data.batch_number;
                                 const devices = deviceData.filter(d => d.batch_number === key);
                                 params.successCallback(devices);
                             }}
                             """
-                        ),
+                        )
                     }
                 }
-                # 把设备层数据从 pandas 转成 dict，给到 JS 全局
-                # device_js = JsCode(f"window.deviceData_{key_suffix} = {device_df.to_json(orient='records')};")
-                # device_js = device_df.to_json(orient='records')
-
-                # 注入 device_df 到前端 JS 作用域
-                # components.html(f"<script>{device_js}</script>", height=0)
-                # components.html(f"<script>window.deviceData_{key_suffix} = {device_js};</script>", height=0)
                 st.success("批次数据加载成功")
                 AgGrid(
                     batch_df,

@@ -20,8 +20,8 @@ def page():
             grid_options = {
                 'columnDefs': [
                     {'field': 'type_name', 'headerName': '设备类型'},
-                    {'field': 'device_id', 'headerName': '设备编号'},
                     {'field': 'device_name', 'headerName': '设备名称'},
+                    {'field': 'device_id', 'headerName': '设备编号'},
                     {'field': 'product_name', 'headerName': '产品名称'},
                     {'field': 'batch_number', 'headerName': '批次编号'},
                     {'field': 'device_state', 'headerName': '设备状态'}
@@ -29,13 +29,12 @@ def page():
                 'autoSizeStrategy': {
                     'type': 'fitGridWidth',
                     'defaultMinWidth': 100
-                }
-                # 'defaultColDef': {
-                #     'sortable': False,
-                #     'filter': False,
-                #     'resizable': True,
-                #     'flex': 1
-                # },
+                },
+                'defaultColDef': {
+                    'sortable': False,
+                    'filter': True,
+                    'resizable': False,
+                },
                 # 'autoSizeColumns': True
             }
             params = {
@@ -45,7 +44,6 @@ def page():
                 "backgroundColor": '#FFFFFF',
                 'spacing': 4,
                 'headerFontWeight': 'bold',
-                # 'headerBackgroundColor': '#D4E3F6'
                 'headerBackgroundColor': '#E6E6E6'
             }
             custom_theme = StAggridTheme(base='quartz').withParams(**params)

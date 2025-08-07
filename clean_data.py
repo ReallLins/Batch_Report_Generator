@@ -12,8 +12,8 @@ class BaseReportDataProtocol(Protocol):
     device_batch_id: Optional[int]
     device_name: Optional[str]
     device_id: Optional[int]
-    device_batch_start_time: Optional[datetime]
-    device_batch_end_time: Optional[datetime]
+    device_batch_start_time: Optional[str]
+    device_batch_end_time: Optional[str]
 
 # 提取罐报表数据类型协议
 @runtime_checkable
@@ -26,13 +26,13 @@ class TQReportDataProtocol(BaseReportDataProtocol, Protocol):
     p1_hold_temp_time_set: Optional[float]
     p1_solvent_num_set: Optional[float]
     # 一次煎煮升温
-    p1_up_temp_start_time: Optional[datetime]
-    p1_up_temp_end_time: Optional[datetime]
+    p1_up_temp_start_time: Optional[str]
+    p1_up_temp_end_time: Optional[str]
     p1_up_temp_min_press: Optional[float]
     p1_up_temp_max_press: Optional[float]
     # 一次煎煮保温
-    p1_hold_temp_start_time: Optional[datetime]
-    p1_hold_temp_end_time: Optional[datetime]
+    p1_hold_temp_start_time: Optional[str]
+    p1_hold_temp_end_time: Optional[str]
     p1_hold_temp_min_press: Optional[float]
     p1_hold_temp_max_press: Optional[float]
     p1_hold_temp_time: Optional[float]
@@ -42,8 +42,8 @@ class TQReportDataProtocol(BaseReportDataProtocol, Protocol):
     p1_solvent_num: Optional[float]
     p1_out_num: Optional[float]
     # 一次煎煮整体时间
-    p1_start_time: Optional[datetime]
-    p1_end_time: Optional[datetime]
+    p1_start_time: Optional[str]
+    p1_end_time: Optional[str]
 
 # 双效浓缩器报表数据类型协议
 @runtime_checkable
@@ -59,8 +59,8 @@ class BaseReportData:
     device_batch_id: Optional[int] = None
     device_name: Optional[str] = ''
     device_id: Optional[int] = None
-    device_batch_start_time: Optional[datetime] = None
-    device_batch_end_time: Optional[datetime] = None
+    device_batch_start_time: Optional[str] = None
+    device_batch_end_time: Optional[str] = None
 
 @dataclass
 class TQReportData(BaseReportData, TQReportDataProtocol):
@@ -72,13 +72,13 @@ class TQReportData(BaseReportData, TQReportDataProtocol):
     p1_hold_temp_time_set: Optional[float] = 0.0
     p1_solvent_num_set: Optional[float] = 0.0
     # 一次煎煮升温
-    p1_up_temp_start_time: Optional[datetime] = None
-    p1_up_temp_end_time: Optional[datetime] = None
+    p1_up_temp_start_time: Optional[str] = None
+    p1_up_temp_end_time: Optional[str] = None
     p1_up_temp_min_press: Optional[float] = 0.0
     p1_up_temp_max_press: Optional[float] = 0.0
     # 一次煎煮保温
-    p1_hold_temp_start_time: Optional[datetime] = None
-    p1_hold_temp_end_time: Optional[datetime] = None
+    p1_hold_temp_start_time: Optional[str] = None
+    p1_hold_temp_end_time: Optional[str] = None
     p1_hold_temp_min_press: Optional[float] = 0.0
     p1_hold_temp_max_press: Optional[float] = 0.0
     p1_hold_temp_time: Optional[float] = 0.0
@@ -88,8 +88,8 @@ class TQReportData(BaseReportData, TQReportDataProtocol):
     p1_solvent_num: Optional[float] = 0.0
     p1_out_num: Optional[float] = 0.0
     # 一次煎煮整体时间
-    p1_start_time: Optional[datetime] = None
-    p1_end_time: Optional[datetime] = None
+    p1_start_time: Optional[str] = None
+    p1_end_time: Optional[str] = None
 
 @dataclass
 class SXReportData(BaseReportData, SXReportDataProtocol):
@@ -98,69 +98,66 @@ class SXReportData(BaseReportData, SXReportDataProtocol):
 
 # 基础数据清洗工具
 class DataCleaner:
+    _NULL_LITERALS = {"", "null", "none", "nan", "n/a"}
+
+    # 公共判空
     @staticmethod
-    def clean_float_value(value: Any) -> Optional[float]:
-        # 清洗数字类型数据
-        if value is None or pd.isna(value):
+    def _is_null(v: Any) -> bool:
+        return (
+            v is None
+            or pd.isna(v)
+            or (isinstance(v, str) and v.strip().lower() in DataCleaner._NULL_LITERALS)
+        )
+
+    # 数值
+    @staticmethod
+    def clean_float_value(v: Any) -> Optional[float]:
+        if DataCleaner._is_null(v):
             return None
-        
         try:
-            if isinstance(value, str):
-                value = value.strip()
-                if value == '' or value.lower() in ['null', 'none', 'n/a', 'nan']:
-                    return None
-                # 移除千位分隔符
-                value = value.replace(',', '')
-            
-            return float(value)
-        except (ValueError, TypeError):
+            return float(str(v).replace(",", ""))
+        except ValueError:
             return None
+
+    @staticmethod
+    def clean_int_value(v: Any) -> Optional[int]:
+        # 整数
+        f = DataCleaner.clean_float_value(v)
+        if f is None:
+            return None
+        if f.is_integer():
+            return int(f)
+        # 非整数时返回 None，也可以改成 round(f)
+        return None
+
+    # 时间
+    @staticmethod
+    def clean_datetime_value(v: Any) -> Optional[str]:
+        # 返回格式化好的字符串 "%Y-%m-%d %H:%M:%S"
+        if DataCleaner._is_null(v):
+            return None
+        ts = pd.to_datetime(v, errors="coerce")
+        if pd.isna(ts):
+            return None
+        return ts.strftime("%Y-%m-%d %H:%M:%S")
+
+    # 字符串
+    @staticmethod
+    def clean_str_value(v: Any) -> Optional[str]:
+        if DataCleaner._is_null(v):
+            return None
+        return str(v).strip()
     
+    # DataFrame 中的时间列格式化
     @staticmethod
-    def clean_datetime_value(value: Any) -> Optional[datetime]:
-        # 清洗日期时间数据
-        if value is None or pd.isna(value):
-            return None
-        
-        try:
-            if isinstance(value, datetime):
-                return value
-            elif isinstance(value, str):
-                value = value.strip()
-                if value == '' or value.lower() in ['null', 'none', 'n/a']:
-                    return None
-                
-                # 尝试多种日期格式
-                date_formats = [
-                    '%Y-%m-%d %H:%M:%S',
-                    '%Y-%m-%d %H:%M:%S.%f',
-                    '%Y-%m-%d',
-                    '%Y/%m/%d %H:%M:%S',
-                    '%Y/%m/%d'
-                ]
-                
-                for fmt in date_formats:
-                    try:
-                        return datetime.strptime(value, fmt)
-                    except ValueError:
-                        continue
-            return None
-        except (ValueError, TypeError):
-            return None
-    
-    @staticmethod
-    def clean_str_value(value: Any) -> Optional[str]:
-        # 清洗字符串数据
-        if value is None or pd.isna(value):
-            return None
-        
-        try:
-            str_value = str(value).strip()
-            if str_value == '' or str_value.lower() in ['null', 'none', 'n/a', 'nan']:
-                return None
-            return str_value
-        except:
-            return None
+    def format_datetime_value(df: pd.DataFrame) -> pd.DataFrame:
+        time_cols = df.select_dtypes(include="datetime64[ns]").columns
+        df[time_cols] = (
+            df[time_cols]
+            .astype("object")          # → object
+            .where(df[time_cols].notna(), None)
+        )
+        return df
 
 # 提取罐数据清洗
 class TQDataCleaner:
@@ -246,90 +243,90 @@ class TQReportTemplateProcessor:
             raise ValueError("设备类型不匹配，必须是提取罐类型")
         header_rows = [
             {
-                'col1': '品名',
-                'col2': data.product_name,
-                'col3': '批量',
-                'col4': data.batch_quantity,
-                'col5': '批号',
-                'col6': data.batch_number,
+                'A': '品名',
+                'B': data.product_name,
+                'C': '批量',
+                'D': data.batch_quantity,
+                'E': '批号',
+                'F': data.batch_number,
             },
             {
-                'col1': '设备名称',
-                'col2': data.device_name,
-                'col3': '设备编号',
-                'col4': data.device_id
+                'A': '设备名称',
+                'B': data.device_name,
+                'C': '设备编号',
+                'D': data.device_id
             },
             {
-                'col1': '开始时间',
-                'col2': data.device_batch_start_time,
-                'col3': '结束时间',
-                'col4': data.device_batch_end_time
+                'A': '开始时间',
+                'B': data.device_batch_start_time,
+                'C': '结束时间',
+                'D': data.device_batch_end_time
             }
         ]
         p1_set_rows = [
             {
-                'col1': '升温压力设定',
-                'col2': data.p1_up_temp_press_set,
-                'col3': '保温压力设定',
-                'col4': data.p1_hold_temp_press_set,
-                'col5': '加溶媒量',
-                'col6': data.p1_solvent_num_set
+                'A': '升温压力设定',
+                'B': data.p1_up_temp_press_set,
+                'C': '保温压力设定',
+                'D': data.p1_hold_temp_press_set,
+                'E': '加溶媒量',
+                'F': data.p1_solvent_num_set
             },
             {
-                'col1': '升温温度设定',
-                'col2': data.p1_up_temp_set,
-                'col3': '保温温度设定',
-                'col4': data.p1_hold_temp_set,
-                'col5': '保温时间设定',
-                'col6': data.p1_hold_temp_time_set
+                'A': '升温温度设定',
+                'B': data.p1_up_temp_set,
+                'C': '保温温度设定',
+                'D': data.p1_hold_temp_set,
+                'E': '保温时间设定',
+                'F': data.p1_hold_temp_time_set
             }
         ]
         p1_record_rows = [
             {
-                'col1': '升温开始时间',
-                'col2': data.p1_up_temp_start_time,
-                'col3': '升温结束时间',
-                'col4': data.p1_up_temp_end_time,
-                'col5': '加溶媒量',
-                'col6': data.p1_solvent_num
+                'A': '升温开始时间',
+                'B': data.p1_up_temp_start_time,
+                'C': '升温结束时间',
+                'D': data.p1_up_temp_end_time,
+                'E': '加溶媒量',
+                'F': data.p1_solvent_num
             },
             {
-                'col1': '保温开始时间',
-                'col2': data.p1_hold_temp_start_time,
-                'col3': '保温结束时间',
-                'col4': data.p1_hold_temp_end_time,
-                'col5': '保温时间',
-                'col6': data.p1_hold_temp_time
+                'A': '保温开始时间',
+                'B': data.p1_hold_temp_start_time,
+                'C': '保温结束时间',
+                'D': data.p1_hold_temp_end_time,
+                'E': '保温时间',
+                'F': data.p1_hold_temp_time
             },
             {
-                'col1': '升温最低压力',
-                'col2': data.p1_up_temp_min_press,
-                'col3': '保温最低压力',
-                'col4': data.p1_hold_temp_min_press,
-                'col5': '保温最低温度',
-                'col6': data.p1_hold_temp_min_temp
+                'A': '升温最低压力',
+                'B': data.p1_up_temp_min_press,
+                'C': '保温最低压力',
+                'D': data.p1_hold_temp_min_press,
+                'E': '保温最低温度',
+                'F': data.p1_hold_temp_min_temp
             },
             {
-                'col1': '升温最高压力',
-                'col2': data.p1_up_temp_max_press,
-                'col3': '保温最高压力',
-                'col4': data.p1_hold_temp_max_press,
-                'col5': '保温最高温度',
-                'col6': data.p1_hold_temp_max_temp
+                'A': '升温最高压力',
+                'B': data.p1_up_temp_max_press,
+                'C': '保温最高压力',
+                'D': data.p1_hold_temp_max_press,
+                'E': '保温最高温度',
+                'F': data.p1_hold_temp_max_temp
             },
             {
-                'col1': '出液量',
-                'col2': data.p1_out_num
+                'A': '出液量',
+                'B': data.p1_out_num
             }
         ]
         footer_rows = [
             {
-                'col1': '操作人',
-                'col2': '',
-                'col3': '复核人',
-                'col4': '',
-                'col5': '报表生成时间',
-                'col6': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                'A': '操作人',
+                'B': '',
+                'C': '复核人',
+                'D': '',
+                'E': '报表生成时间',
+                'F': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         ]
         # 返回标准化的数据结构
@@ -392,3 +389,6 @@ def get_report_template_dataframe(table_name: str, raw_df: pd.DataFrame) -> dict
     cleaned_data = DataCleanerFactory.clean_dataframe(table_name, raw_df)
     template_df = ReportTemplateProcessor.convert_to_template_df(cleaned_data, table_name)
     return template_df
+
+def get_formatted_datetime_df(df: pd.DataFrame) -> pd.DataFrame:
+    return DataCleaner.format_datetime_value(df)
