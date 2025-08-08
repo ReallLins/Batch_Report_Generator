@@ -8,6 +8,16 @@ from app_pages import device_state, batch_query, report_generate
 # report_generate_page = st.Page('pages/report_generate.py', title='报表生成', icon=':material/table_convert:')
 # pg = st.navigation([device_state_page, batch_query_page, report_generate_page])
 st.set_page_config(page_title='批次报表工具', page_icon='icons/main_icon.png', layout='wide')
+st.markdown(
+    """
+    <style>
+        section[data-testid="stSidebar"] {
+            width: 300px !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 # pg.run()
 
 # with st.sidebar:

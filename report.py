@@ -5,8 +5,6 @@ from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.cell import Cell
 from openpyxl.utils.dataframe import dataframe_to_rows
 from io import BytesIO
-from typing import Dict, Any, Optional
-from datetime import datetime
 
 
 class BaseReport:

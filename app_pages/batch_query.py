@@ -10,7 +10,7 @@ import json
 
 def render_batch_table(realtime: bool, database, theme: StAggridTheme):
     key_suffix = 'rt' if realtime else 'his'
-
+    LICENSE_KEY = '[v3][RELEASE][0102]_NDg2Njc4MzY3MDgzNw==16d78ca762fb5d2ff740aed081e2af7b'
     DTIME_FORMAT = JsCode(
             """
             function(params){
@@ -22,6 +22,37 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
             }
             """
     )
+    # 新增：统一的列宽自适应脚本（主表/子表复用）
+    JS_ON_GRID_READY = JsCode("""
+        function(params){
+            const fit = () => { if (params.api) { params.api.sizeColumnsToFit(); } };
+            // 初次
+            setTimeout(fit, 60);
+            // 浏览器窗口变化
+            window.addEventListener('resize', () => setTimeout(fit, 60));
+            // 容器宽度变化（如侧边栏折叠/展开）
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => setTimeout(fit, 60));
+                ro.observe(params.eGridDiv);          // 观察当前网格容器
+                const parent = params.eGridDiv.parentElement;
+                if (parent) ro.observe(parent);        // 以及其父容器（Streamlit列/容器）
+            }
+        }
+    """)
+    JS_ON_FIRST_DATA = JsCode("""
+        function(params){
+            setTimeout(function(){
+                if (params.api) { params.api.sizeColumnsToFit(); }
+            }, 0);
+        }
+    """)
+    JS_ON_GRID_SIZE_CHANGED = JsCode("""
+        function(params){
+            setTimeout(function(){
+                if (params.api) { params.api.sizeColumnsToFit(); }
+            }, 0);
+        }
+    """)
 
     with st.container(border=True, key=f"search_container_{key_suffix}"):
         cols1 = st.columns(3, vertical_alignment='bottom')
@@ -86,6 +117,7 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                     "columnDefs": [
                         {"field": "batch_number", "headerName": "批次编号", "cellRenderer": "agGroupCellRenderer"},
                         {"field": "product_name", "headerName": "产品名称"},
+                        {"field": "batch_quantity", "headerName": "计划产量"},
                         {"field": "start_time", "headerName": "开始时间",
                          "type": ["dateColumnFilter", "customDateTimeFormat"],
                          "custom_format_string": "yyyy-MM-dd HH:mm:ss"},
@@ -100,7 +132,7 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                     "defaultColDef": {
                         "sortable": False,
                         "filter": True,
-                        "resizable": True,
+                        "resizable": True
                     },
                     "masterDetail": True,
                     # "isExternalFilterPresent": False,
@@ -110,6 +142,10 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                         'type': 'fitGridWidth',
                         'defaultMinWidth': 20
                     },
+                    # 新增：主表的自适应钩子（不使用 domLayout:autoHeight）
+                    "onGridReady": JS_ON_GRID_READY,
+                    "onFirstDataRendered": JS_ON_FIRST_DATA,
+                    "onGridSizeChanged": JS_ON_GRID_SIZE_CHANGED,
                     "detailCellRendererParams": {
                         "detailGridOptions": {
                             "columnDefs": [
@@ -132,7 +168,11 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                             "autoSizeStrategy": {
                                 'type': 'fitGridWidth',
                                 'defaultMinWidth': 20
-                            }
+                            },
+                            # 新增：子表也自适应
+                            "onGridReady": JS_ON_GRID_READY,
+                            "onFirstDataRendered": JS_ON_FIRST_DATA,
+                            "onGridSizeChanged": JS_ON_GRID_SIZE_CHANGED
                         },
                         # JS片段告诉AG-Grid如何把子表数据喂进去
                         "getDetailRowData": JsCode(
@@ -154,6 +194,7 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                     gridOptions=grid_options,
                     allow_unsafe_jscode=True,
                     enable_enterprise_modules=True,
+                    license_key=LICENSE_KEY,
                     theme=theme if theme else StAggridTheme(base='quartz'),
                     key=f"aggrid_{key_suffix}"
                 )

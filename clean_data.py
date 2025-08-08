@@ -1,6 +1,6 @@
 import pandas as pd
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, Protocol, Union, runtime_checkable
+from typing import Optional, Dict, Any, Protocol, runtime_checkable
 from datetime import datetime
 
 @runtime_checkable
@@ -133,7 +133,6 @@ class DataCleaner:
     # 时间
     @staticmethod
     def clean_datetime_value(v: Any) -> Optional[str]:
-        # 返回格式化好的字符串 "%Y-%m-%d %H:%M:%S"
         if DataCleaner._is_null(v):
             return None
         ts = pd.to_datetime(v, errors="coerce")
@@ -335,22 +334,22 @@ class TQReportTemplateProcessor:
                 {
                     'title': '基本信息',
                     'type': 'info',
-                    'data': pd.DataFrame(header_rows)
+                    'data': pd.DataFrame(header_rows).fillna('').astype(str)
                 },
                 {
                     'title': '一次参数设置',
                     'type': 'parameters',
-                    'data': pd.DataFrame(p1_set_rows)
+                    'data': pd.DataFrame(p1_set_rows).fillna('').astype(str)
                 },
                 {
                     'title': '一次煎煮记录',
                     'type': 'records',
-                    'data': pd.DataFrame(p1_record_rows)
+                    'data': pd.DataFrame(p1_record_rows).fillna('').astype(str)
                 },
                 {
                     'title': '其他信息',
                     'type': 'summary',
-                    'data': pd.DataFrame(footer_rows)
+                    'data': pd.DataFrame(footer_rows).fillna('').astype(str)
                 }
             ]
         }

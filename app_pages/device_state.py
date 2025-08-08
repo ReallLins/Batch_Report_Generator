@@ -1,7 +1,7 @@
 import streamlit as st
 from database_config import get_database_config
 from get_data import get_device_info_df
-from st_aggrid import AgGrid, GridOptionsBuilder, StAggridTheme
+from st_aggrid import AgGrid, GridOptionsBuilder, StAggridTheme, JsCode
 
 
 def page():
@@ -12,6 +12,38 @@ def page():
     #     with col2:
     #         st.title('批次报表工具')
     database = get_database_config()
+    LICENSE_KEY = '[v3][RELEASE][0102]_NDg2Njc4MzY3MDgzNw==16d78ca762fb5d2ff740aed081e2af7b'
+        # 新增：统一的列宽自适应脚本（主表/子表复用）
+    JS_ON_GRID_READY = JsCode("""
+        function(params){
+            const fit = () => { if (params.api) { params.api.sizeColumnsToFit(); } };
+            // 初次
+            setTimeout(fit, 60);
+            // 浏览器窗口变化
+            window.addEventListener('resize', () => setTimeout(fit, 60));
+            // 容器宽度变化（如侧边栏折叠/展开）
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => setTimeout(fit, 60));
+                ro.observe(params.eGridDiv);          // 观察当前网格容器
+                const parent = params.eGridDiv.parentElement;
+                if (parent) ro.observe(parent);        // 以及其父容器(Streamlit列/容器)
+            }
+        }
+    """)
+    JS_ON_FIRST_DATA = JsCode("""
+        function(params){
+            setTimeout(function(){
+                if (params.api) { params.api.sizeColumnsToFit(); }
+            }, 0);
+        }
+    """)
+    JS_ON_GRID_SIZE_CHANGED = JsCode("""
+        function(params){
+            setTimeout(function(){
+                if (params.api) { params.api.sizeColumnsToFit(); }
+            }, 0);
+        }
+    """)
     # st.title("设备状态")
     # st.markdown("---")
     try:
@@ -35,6 +67,10 @@ def page():
                     'filter': True,
                     'resizable': False,
                 },
+                # 自适应页宽
+                "onGridReady": JS_ON_GRID_READY,
+                "onFirstDataRendered": JS_ON_FIRST_DATA,
+                "onGridSizeChanged": JS_ON_GRID_SIZE_CHANGED
                 # 'autoSizeColumns': True
             }
             params = {
@@ -61,7 +97,12 @@ def page():
             #             use_container_width=True,
             #             hide_index=True,
             #             column_config=column_config)
-            AgGrid(results, gridOptions=grid_options, enable_enterprise_modules=True, theme=custom_theme)
+            AgGrid(results, 
+                   gridOptions=grid_options, 
+                   allow_unsafe_jscode=True,
+                   enable_enterprise_modules=True, 
+                   license_key=LICENSE_KEY,
+                   theme=custom_theme)
         else:
             st.info("暂无设备数据")
     except Exception as e:

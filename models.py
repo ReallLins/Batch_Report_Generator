@@ -38,6 +38,7 @@ class TBatch(Base):
     start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
     batch_state = Column(NVARCHAR, nullable=True)
+    batch_quantity = Column(DECIMAL(10, 2), nullable=True)
 
 class TDeviceBatch(Base):
     __tablename__ = "T_Device_Batch"
@@ -68,7 +69,7 @@ class TTQBatchRealtime(Base):
     p1_up_temp_max_press = Column(DECIMAL, nullable=True)
     # 一次煎煮保温
     p1_hold_temp_start_time = Column(DateTime, nullable=True)
-    p1_hold_time_end_time = Column(DateTime, nullable=True)
+    p1_hold_temp_end_time = Column(DateTime, nullable=True)
     p1_hold_temp_min_press = Column(DECIMAL, nullable=True)
     p1_hold_temp_max_press = Column(DECIMAL, nullable=True)
     p1_hold_temp_time = Column(DECIMAL, nullable=True)
@@ -101,7 +102,7 @@ class TTQBatchArchive(TArchiveBase):
     p1_up_temp_max_press = Column(DECIMAL, nullable=True)
     # 一次煎煮保温
     p1_hold_temp_start_time = Column(DateTime, nullable=True)
-    p1_hold_time_end_time = Column(DateTime, nullable=True)
+    p1_hold_temp_end_time = Column(DateTime, nullable=True)
     p1_hold_temp_min_press = Column(DECIMAL, nullable=True)
     p1_hold_temp_max_press = Column(DECIMAL, nullable=True)
     p1_hold_temp_time = Column(DECIMAL, nullable=True)
