@@ -227,7 +227,6 @@ def render_report_sections_to_aggrid(report_data):
 
         # 计算表格高度: (行数 * 行高) + 边框高度(上下各1px)
         grid_height = (len(df) * 30) + 2
-        print(df)
         AgGrid(
             df,
             gridOptions=grid_opt,
@@ -324,8 +323,8 @@ def page():
                     return
                 # 使用通用渲染函数显示报表
                 # render_report_sections(report_template_df)
-                for sec in report_template_df['sections']:
-                    st.dataframe(sec['data'])
+                # for sec in report_template_df['sections']:
+                #     st.dataframe(sec['data'])
                 render_report_sections_to_aggrid(report_template_df)
     
     if report_template_df:
