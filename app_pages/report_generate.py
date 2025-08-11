@@ -260,7 +260,7 @@ def st_generate_report(report_template_df: dict, batch_number, device_name) -> N
         st.download_button(
             label='下载报表',
             data=batch_report,
-            file_name=f'batch_report_{batch_number}.xlsx',
+            file_name=f'Batch_Rpt_{batch_number}_{device_name}.xlsx',
             on_click='ignore',
             icon=':material/download:',
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

@@ -18,6 +18,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 # pg.run()
 
 # with st.sidebar:
@@ -41,7 +42,25 @@ with st.sidebar:
                             menu_icon='house',
                             options=titles,
                             icons=icons,
-                            default_index=0
+                            default_index=0,
+                            styles={
+                                # "container": {
+                                #     "background-color": "#EEEEEE" # 容器背景色
+                                # },
+                                # "icon": {
+                                #     "color": "#1c2533", # 图标颜色
+                                #     "font-size": "20px"
+                                # },
+                                "nav-link": {
+                                    "font-size": "18px",
+                                    "text-align": "left",
+                                    "margin": "2px",
+                                    "--hover-color": "#D6DCF0", # 鼠标悬停背景色
+                                },
+                                # "nav-link-selected": {
+                                #     "background-color": "#BCA09F", # 选中项背景色
+                                # },
+                            }
                             )
 
 for page in pages:
