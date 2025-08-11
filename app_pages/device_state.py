@@ -2,6 +2,7 @@ import streamlit as st
 from database_config import get_database_config
 from get_data import get_device_info_df
 from st_aggrid import AgGrid, GridOptionsBuilder, StAggridTheme, JsCode
+import json
 
 
 def page():
@@ -13,7 +14,7 @@ def page():
     #         st.title('批次报表工具')
     database = get_database_config()
     LICENSE_KEY = '[v3][RELEASE][0102]_NDg2Njc4MzY3MDgzNw==16d78ca762fb5d2ff740aed081e2af7b'
-        # 新增：统一的列宽自适应脚本（主表/子表复用）
+    # 新增：统一的列宽自适应脚本（主表/子表复用）
     JS_ON_GRID_READY = JsCode("""
         function(params){
             const fit = () => { if (params.api) { params.api.sizeColumnsToFit(); } };
@@ -44,6 +45,82 @@ def page():
             }, 0);
         }
     """)
+
+    DEVICE_STATUS_CONFIG = {
+        '运行中': {
+            'backgroundColor': "#b5ffc1",
+            'color': "#05A13E",
+            'border': '1.5px solid rgba(70, 227, 114, 0.2)',
+            'symbol': '●'
+        },
+        '未运行': {
+            'backgroundColor': 'rgba(255, 0, 0, 0.05)',
+            'color': "#CC4242",
+            'border': '1.5px solid rgba(255, 0, 0, 0.3)',
+            'symbol': '●'
+        },
+        '已完成': {
+            'backgroundColor': "#DDDDDD",
+            'color': "#656565",
+            'border': '1.5px solid rgba(91, 91, 91, 0.1)',
+            'symbol': '●'
+        }
+    }
+    # cellStyle
+    DEVICE_STATUS_CELL_STYLE = JsCode(f"""
+        function(params) {{
+            const value = params.value;
+            const config = {json.dumps(DEVICE_STATUS_CONFIG, ensure_ascii=False)};
+            
+            if (value && config[value]) {{
+                return {{
+                    "display": "flex",
+                    "justify-content": "flex-start",
+                    "align-items": "center",
+                }};
+            }}
+            return {{}};
+        }}
+    """)
+    # 自定义
+    DEVICE_STATUS_CELL_RENDERER = JsCode(f"""
+        class StatusCellRenderer {{
+            init(params) {{
+                this.eGui = document.createElement('div');
+                const value = params.value;
+                const config = {json.dumps(DEVICE_STATUS_CONFIG, ensure_ascii=False)};
+
+                if (value && config[value]) {{
+                    // 设置标签的样式
+                    this.eGui.style.backgroundColor = config[value].backgroundColor;
+                    this.eGui.style.color = config[value].color;
+                    this.eGui.style.border = config[value].border;
+                    
+                    // --- 在这里调整标签样式 ---
+                    this.eGui.style.borderRadius = '50px'; // 圆角
+                    this.eGui.style.padding = '1px 8px';  // 内边距 (上下 左右)
+                    this.eGui.style.display = 'inline-block'; // 设置为行内块元素以应用宽高
+                    this.eGui.style.fontWeight = 'middle';
+                    this.eGui.style.fontSize = '14px'; // 字体大小
+                    this.eGui.style.lineHeight = '20px'; // 行高
+                    // --------------------------
+
+                    this.eGui.innerHTML = config[value].symbol + ' ' + value;
+                }} else {{
+                    this.eGui.innerHTML = value || '';
+                }}
+            }}
+
+            getGui() {{
+                return this.eGui;
+            }}
+
+            refresh(params) {{
+                return false;
+            }}
+        }}
+    """)
+
     # st.title("设备状态")
     # st.markdown("---")
     try:
@@ -56,17 +133,22 @@ def page():
                     {'field': 'device_id', 'headerName': '设备编号'},
                     {'field': 'product_name', 'headerName': '产品名称'},
                     {'field': 'batch_number', 'headerName': '批次编号'},
-                    {'field': 'device_state', 'headerName': '设备状态'}
+                    {'field': 'device_state', 'headerName': '设备状态',
+                     'cellRenderer': DEVICE_STATUS_CELL_RENDERER,
+                     'cellStyle': DEVICE_STATUS_CELL_STYLE
+                     }
                 ],
                 'autoSizeStrategy': {
-                    'type': 'fitGridWidth',
-                    'defaultMinWidth': 100
+                    'type': 'fitGridWidth'
                 },
                 'defaultColDef': {
                     'sortable': False,
                     'filter': True,
-                    'resizable': False,
+                    'resizable': True,
+                    'cellStyle': {'display': 'flex', 'alignItems': 'center'}
                 },
+                "rowHeight": 40,
+                "cell-align-items": "center",
                 # 自适应页宽
                 "onGridReady": JS_ON_GRID_READY,
                 "onFirstDataRendered": JS_ON_FIRST_DATA,
@@ -76,7 +158,7 @@ def page():
             params = {
                 "fontSize": 14,
                 "rowBorder": True,
-                'columnBorder': True,
+                'columnBorder': False,
                 "backgroundColor": '#FFFFFF',
                 'spacing': 4,
                 'headerFontWeight': 'bold',
@@ -84,19 +166,7 @@ def page():
             }
             custom_theme = StAggridTheme(base='quartz').withParams(**params)
 
-            # column_config = {
-            #     "device_id": "设备编号",
-            #     "type_name": "设备类型",
-            #     "device_name": "设备名称",
-            #     "product_name": "产品名称",
-            #     "batch_number": "批次编号",
-            #     "device_state": "设备状态"
-            # }
             st.success("设备状态数据加载成功")
-            # st.dataframe(results,
-            #             use_container_width=True,
-            #             hide_index=True,
-            #             column_config=column_config)
             AgGrid(results, 
                    gridOptions=grid_options, 
                    allow_unsafe_jscode=True,

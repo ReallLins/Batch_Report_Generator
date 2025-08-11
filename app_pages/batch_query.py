@@ -54,6 +54,119 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
         }
     """)
 
+    DEVICE_STATUS_CONFIG = {
+        '运行中': {
+            'backgroundColor': "#b5ffc1",
+            'color': "#05A13E",
+            'border': '1.5px solid rgba(70, 227, 114, 0.2)',
+            'symbol': '●'
+        },
+        '未运行': {
+            'backgroundColor': 'rgba(255, 0, 0, 0.05)',
+            'color': "#CC4242",
+            'border': '1.5px solid rgba(255, 0, 0, 0.3)',
+            'symbol': '●'
+        },
+        '已完成': {
+            'backgroundColor': "#DDDDDD",
+            'color': "#656565",
+            'border': '1.5px solid rgba(91, 91, 91, 0.1)',
+            'symbol': '●'
+        }
+    }
+    # cellStyle
+    DEVICE_STATUS_CELL_STYLE = JsCode(f"""
+        function(params) {{
+            const value = params.value;
+            const config = {json.dumps(DEVICE_STATUS_CONFIG, ensure_ascii=False)};
+            
+            if (value && config[value]) {{
+                return {{
+                    "display": "flex",
+                    "justify-content": "flex-start",
+                    "align-items": "center",
+                }};
+            }}
+            return {{}};
+        }}
+    """)
+    # 自定义
+    DEVICE_STATUS_CELL_RENDERER = JsCode(f"""
+        class StatusCellRenderer {{
+            init(params) {{
+                this.eGui = document.createElement('div');
+                const value = params.value;
+                const config = {json.dumps(DEVICE_STATUS_CONFIG, ensure_ascii=False)};
+
+                if (value && config[value]) {{
+                    // 设置标签的样式
+                    this.eGui.style.backgroundColor = config[value].backgroundColor;
+                    this.eGui.style.color = config[value].color;
+                    this.eGui.style.border = config[value].border;
+                    
+                    // --- 在这里调整标签样式 ---
+                    this.eGui.style.borderRadius = '50px'; // 圆角
+                    this.eGui.style.padding = '1px 8px';  // 内边距 (上下 左右)
+                    this.eGui.style.display = 'inline-block'; // 设置为行内块元素以应用宽高
+                    this.eGui.style.fontWeight = 'middle';
+                    this.eGui.style.fontSize = '14px'; // 字体大小
+                    this.eGui.style.lineHeight = '20px'; // 行高
+                    // --------------------------
+
+                    this.eGui.innerHTML = config[value].symbol + ' ' + value;
+                }} else {{
+                    this.eGui.innerHTML = value || '';
+                }}
+            }}
+
+            getGui() {{
+                return this.eGui;
+            }}
+
+            refresh(params) {{
+                return false;
+            }}
+        }}
+    """)
+
+    DETAIL_DEVICE_STATUS_CELL_RENDERER = JsCode(f"""
+        class StatusCellRenderer {{
+            init(params) {{
+                this.eGui = document.createElement('div');
+                const value = params.value;
+                const config = {json.dumps(DEVICE_STATUS_CONFIG, ensure_ascii=False)};
+
+                if (value && config[value]) {{
+                    // 设置标签的样式
+                    this.eGui.style.backgroundColor = config[value].backgroundColor;
+                    this.eGui.style.color = config[value].color;
+                    this.eGui.style.border = config[value].border;
+                    
+                    // --- 在这里调整标签样式 ---
+                    this.eGui.style.borderRadius = '50px'; // 圆角
+                    this.eGui.style.padding = '1px 8px';  // 内边距 (上下 左右)
+                    this.eGui.style.display = 'inline-block'; // 设置为行内块元素以应用宽高
+                    this.eGui.style.fontWeight = 'middle';
+                    this.eGui.style.fontSize = '12px'; // 字体大小
+                    this.eGui.style.lineHeight = '14px'; // 行高
+                    // --------------------------
+
+                    this.eGui.innerHTML = config[value].symbol + ' ' + value;
+                }} else {{
+                    this.eGui.innerHTML = value || '';
+                }}
+            }}
+
+            getGui() {{
+                return this.eGui;
+            }}
+
+            refresh(params) {{
+                return false;
+            }}
+        }}
+    """)
+
     with st.container(border=True, key=f"search_container_{key_suffix}"):
         cols1 = st.columns(3, vertical_alignment='bottom')
         cols2 = st.columns(3, vertical_alignment='bottom')
@@ -124,15 +237,20 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                         {"field": "end_time", "headerName": "完成时间",
                          "type": ["dateColumnFilter", "customDateTimeFormat"],
                          "custom_format_string": "yyyy-MM-dd HH:mm:ss"},
-                        {"field": "batch_state", "headerName": "批次状态"}
+                        {"field": "batch_state", "headerName": "批次状态",
+                         "cellRenderer": DEVICE_STATUS_CELL_RENDERER,
+                         "cellStyle": DEVICE_STATUS_CELL_STYLE
+                         }
                     ],
+                    "rowHeight": 40,
                     "pagination": True,
                     "paginationPageSize": 20,
                     "cellSelection": True,
                     "defaultColDef": {
                         "sortable": False,
                         "filter": True,
-                        "resizable": True
+                        "resizable": True,
+                        'cellStyle': {'display': 'flex', 'alignItems': 'center'}
                     },
                     "masterDetail": True,
                     # "isExternalFilterPresent": False,
@@ -151,7 +269,10 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                             "columnDefs": [
                                 {"field": "device_id", "headerName": "设备ID"},
                                 {"field": "device_name", "headerName": "设备名称"},
-                                {"field": "device_state", "headerName": "设备状态"},
+                                {"field": "device_state", "headerName": "设备状态",
+                                 "cellRenderer": DETAIL_DEVICE_STATUS_CELL_RENDERER,
+                                 "cellStyle": DEVICE_STATUS_CELL_STYLE
+                                 },
                                 {"field": "device_batch_start_time", "headerName": "开始时间",
                                  "valueFormatter": DTIME_FORMAT},
                                 {"field": "device_batch_end_time", "headerName": "完成时间",
@@ -159,11 +280,13 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                             ],
                             "pagination": True,
                             "paginationPageSize": 20,
+                            "rowHeight": 30,
                             "defaultColDef": {
                                 "sortable": False,
                                 "filter": False,
                                 "resizable": True,
-                                "selectionMode": "single"
+                                "selectionMode": "single",
+                                'cellStyle': {'display': 'flex', 'alignItems': 'center'}
                             },
                             "autoSizeStrategy": {
                                 'type': 'fitGridWidth',
@@ -211,7 +334,7 @@ def page():
     params = {
         "fontSize": 14,
         "rowBorder": True,
-        'columnBorder': True,
+        'columnBorder': False,
         "backgroundColor": '#FFFFFF',
         'spacing': 4,
         'headerFontWeight': 'bold',
