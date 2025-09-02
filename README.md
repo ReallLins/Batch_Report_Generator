@@ -4,9 +4,9 @@
 
 批次报表工具是一个基于Streamlit的Web应用，用于批次数据管理和报表生成。系统通过SQLAlchemy连接SQL Server数据库，提供设备监控、批次查询和报表生成功能。
 
-## 技术栈
+### 技术栈
 
-| 层次 | 技术 | 用途 |
+| 模块 | 技术 | 用途 |
 |------|------|------|
 | 前端界面 | Streamlit | Web UI框架 |
 | 数据展示 | st-aggrid, streamlit-antd-components | 数据表格和组件 |
