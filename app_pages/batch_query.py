@@ -2,7 +2,7 @@ import streamlit as st
 from database_config import get_database_config
 from get_data import get_search_batchs_data, get_device_type_tuple, get_device_tuple
 from clean_data import get_formatted_datetime_df
-from st_aggrid import AgGrid, JsCode, StAggridTheme
+from st_aggrid import AgGrid, JsCode, StAggridTheme, GridUpdateMode, DataReturnMode
 import streamlit_antd_components as sac
 import traceback
 import json
@@ -318,6 +318,8 @@ def render_batch_table(realtime: bool, database, theme: StAggridTheme):
                     allow_unsafe_jscode=True,
                     enable_enterprise_modules=True,
                     license_key=LICENSE_KEY,
+                    update_mode=GridUpdateMode.NO_UPDATE,
+                    data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
                     theme=theme if theme else StAggridTheme(base='quartz'),
                     key=f"aggrid_{key_suffix}"
                 )

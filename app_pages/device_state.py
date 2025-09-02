@@ -1,7 +1,7 @@
 import streamlit as st
 from database_config import get_database_config
 from get_data import get_device_info_df
-from st_aggrid import AgGrid, GridOptionsBuilder, StAggridTheme, JsCode
+from st_aggrid import AgGrid, GridOptionsBuilder, StAggridTheme, JsCode, GridUpdateMode, DataReturnMode
 import json
 
 
@@ -172,6 +172,8 @@ def page():
                    allow_unsafe_jscode=True,
                    enable_enterprise_modules=True, 
                    license_key=LICENSE_KEY,
+                   update_mode=GridUpdateMode.NO_UPDATE,
+                   data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
                    theme=custom_theme)
         else:
             st.info("暂无设备数据")
