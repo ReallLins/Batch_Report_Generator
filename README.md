@@ -4,9 +4,22 @@
 
 批次报表工具是一个基于Streamlit的Web应用，用于批次数据管理和报表生成。系统通过SQLAlchemy连接SQL Server数据库，提供设备监控、批次查询和报表生成功能。
 
+## 技术栈
+
+| 层次 | 技术 | 用途 |
+|------|------|------|
+| 前端界面 | Streamlit | Web UI框架 |
+| 数据展示 | st-aggrid, streamlit-antd-components | 数据表格和组件 |
+| 后端框架 | Python 3.13 | 核心开发语言 |
+| ORM框架 | SQLAlchemy 2.0+ | 数据库访问 |
+| 数据库 | SQL Server | 生产数据存储 |
+| 数据处理 | Pandas | 数据分析处理 |
+| 报表生成 | openpyxl | Excel文件生成 |
+| 配置管理 | Streamlit Secrets | 敏感信息管理 |
+
 ## 系统架构图
 
-### 整体架构 (C1 - 系统上下文图)
+### 整体架构
 
 ```mermaid
 flowchart TB
@@ -39,7 +52,7 @@ flowchart TB
     BRG -->|报表生成| Reports[Excel报表]
 ```
 
-### 应用架构 (C2 - 容器图)
+### 应用架构
 
 ```mermaid
 flowchart TB
@@ -94,7 +107,7 @@ flowchart TB
     UI --> Icons
 ```
 
-### 组件架构 (C3 - 组件图)
+### 组件架构
 
 ```mermaid
 flowchart TB
@@ -229,22 +242,7 @@ flowchart TD
     WebUI --> APIResponse
 ```
 
-## 技术架构说明
-
-### 技术栈组成
-
-| 层次 | 技术 | 用途 |
-|------|------|------|
-| 前端界面 | Streamlit | Web UI框架 |
-| 数据展示 | st-aggrid, streamlit-antd-components | 数据表格和组件 |
-| 后端框架 | Python 3.13 | 核心开发语言 |
-| ORM框架 | SQLAlchemy 2.0+ | 数据库访问 |
-| 数据库 | SQL Server | 生产数据存储 |
-| 数据处理 | Pandas | 数据分析处理 |
-| 报表生成 | openpyxl | Excel文件生成 |
-| 配置管理 | Streamlit Secrets | 敏感信息管理 |
-
-### 部署架构
+## 部署架构
 
 ```mermaid
 flowchart LR
