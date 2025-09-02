@@ -333,22 +333,22 @@ class TQReportTemplateProcessor:
             'sections': [
                 {
                     'title': '基本信息',
-                    'type': 'info',
+                    'type': 'header',
                     'data': pd.DataFrame(header_rows).fillna('').astype(str)
                 },
                 {
                     'title': '一次参数设置',
-                    'type': 'parameters',
+                    'type': 'main',
                     'data': pd.DataFrame(p1_set_rows).fillna('').astype(str)
                 },
                 {
                     'title': '一次煎煮记录',
-                    'type': 'records',
+                    'type': 'main',
                     'data': pd.DataFrame(p1_record_rows).fillna('').astype(str)
                 },
                 {
                     'title': '其他信息',
-                    'type': 'summary',
+                    'type': 'footer',
                     'data': pd.DataFrame(footer_rows).fillna('').astype(str)
                 }
             ]
@@ -359,7 +359,7 @@ class SXReportTemplateProcessor:
     @staticmethod
     def create_report_template_dataframe(data: SXReportData) -> dict[str, pd.DataFrame]:
         if not isinstance(data, SXReportData):
-            raise ValueError("数据类型不匹配，必须是双效浓缩器报表")
+            raise ValueError("数据类型不匹配，必须是双效浓缩器报表")    
         rows = [
             {
                 # 双效浓缩器报表内容

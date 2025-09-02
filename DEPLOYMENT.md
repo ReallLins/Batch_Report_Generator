@@ -322,7 +322,7 @@ streamlit run main.py
 ```
 Batch_Report_Generator/
 ├── main.py                    # 主应用程序
-├── models.py                  # SQLModel 数据模型
+├── models.py                  # SQLAlchemy 数据模型
 ├── database.py                # 数据库连接和管理
 ├── report.py                  # 报表生成模块
 ├── requirements.txt           # 依赖包列表

@@ -1,17 +1,16 @@
 {
-    "query":{
+    "request":{
         "tag": ["TT_01.AV", "PT_01.AV"],
         "start_time": "2025-07-01 15:00:00",
         "end_time": "2025-07-01 18:00:00",
-        "interval": 1800,
-        "min_num": 2
+        "interval": 1800
     },
 
-    "result":{
+    "response":{
         "tag": ["TT_01.AV", "PT_01.AV"],
         "state": "success/fail",
         "num": 7,
-        "value": {
+        "values": {
             "2025-07-01 15:00:00": [90, 200],
             "2025-07-01 15:30:00": [95, 200],
             "2025-07-01 16:00:00": [100, 200],

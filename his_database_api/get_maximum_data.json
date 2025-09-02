@@ -1,15 +1,12 @@
 {
-    "query":{
+    "request":{
         "tag": ["TT_01.AV", "PT_01.AV"],
         "start_time": "2025-07-01 15:00:00",
-        "end_time": "2025-07-01 18:00:00",
-        "type": "max/min"
+        "end_time": "2025-07-01 18:00:00"
     },
 
-    "result":{
+    "response":{
         "tag": ["TT_01.AV", "PT_01.AV"],
-        "state": "success/fail",
-        "type": "max/min",
         "value": [100, 200]
     }
 }
