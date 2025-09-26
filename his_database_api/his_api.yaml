@@ -1,0 +1,43 @@
+POST: http://localhost:5173
+API:
+  - /api/v1/time-series/raw
+  - /api/v1/time-series/min
+  - /api/v1/time-series/max
+Content-Type: application/json
+Accept: application/json
+
+
+raw:
+  request:
+    "tags": ["TT_01.AV", "PT_01.AV"]
+    "filter": {
+      "start_time": "2025-07-01 15:00:00 / 1751324400",
+      "end_time": "2025-07-01 18:00:00 / 1751364000",
+      "interval": 1800
+    }
+    "query": "[TT_01, PT_01]?time>'2025-07-01T15:00:00'&time<'2025-07-01T18:00:00'&interval=1800"
+    "query": "select TT_01, PT_01 where time>'2025-07-01T15:00:00' and time<'2025-07-01T18:00:00' sample by 1800"
+
+  response:
+    "TT_01.AV": {
+      "period": ["1751324400", "1751364000"],
+      "quality": [0, 0, 0, 0, 0, 0, 0],
+      "values": [70.11, 70.12, 70.14, 70.13, 70.15, 70.16, 70.14]
+    }
+    "PT_01.AV": {
+      "period": ["1751324400", "1751364000"],
+      "quality": [0, 0, 0, 0, 0, 0, 0],
+      "values": [70.11, 70.12, 70.14, 70.13, 70.15, 70.16, 70.14]
+    }
+
+  exception:
+    "400": "Bad Request"
+    "401": "Unauthorized"
+    "403": "Forbidden"
+    "404": "Not Found"
+    "500": "Server Error"
+
+# | Tag       | Timestamp                      | Status Code | Value                 |
+# |-----------|--------------------------------|-------------|-----------------------|
+# | A         | [12:00:01, 12:00:02, 12:00:03] | [0, 0, 0]   | [70.11, 70.12, 70.14] |
+# | B         | [12:00:01, 12:00:02, 12:00:03] | [0, 0, 4]   | [69.70, 69.69, 69.70] |

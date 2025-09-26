@@ -6,7 +6,11 @@
     },
 
     "response":{
-        "tag": ["TT_01.AV", "PT_01.AV"],
-        "value": [100, 200]
+        "code": 0,
+        "msg": "ok",
+        "data": {
+            "tag": ["TT_01.AV", "PT_01.AV"],
+            "value": [90, 120]
+        }
     }
 }
