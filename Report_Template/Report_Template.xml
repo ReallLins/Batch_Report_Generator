@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>openpyxl</Author>
+  <LastAuthor>S Lin</LastAuthor>
+  <Created>2025-09-26T09:42:16Z</Created>
+  <LastSaved>2025-09-26T09:50:41Z</LastSaved>
+  <Version>16.00</Version>
+ </DocumentProperties>
+ <OfficeDocumentSettings xmlns="urn:schemas-microsoft-com:office:office">
+  <AllowPNG/>
+ </OfficeDocumentSettings>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <WindowHeight>17780</WindowHeight>
+  <WindowWidth>30240</WindowWidth>
+  <WindowTopX>32767</WindowTopX>
+  <WindowTopY>760</WindowTopY>
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="宋体" x:CharSet="134" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s16">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"
+     ss:Color="#000000"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"
+     ss:Color="#000000"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"
+     ss:Color="#000000"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"
+     ss:Color="#000000"/>
+   </Borders>
+   <Font ss:FontName="宋体" x:CharSet="134" ss:Size="11" ss:Color="#000000"/>
+  </Style>
+  <Style ss:ID="s23">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"
+     ss:Color="#000000"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"
+     ss:Color="#000000"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"
+     ss:Color="#000000"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"
+     ss:Color="#000000"/>
+   </Borders>
+   <Font ss:FontName="宋体" x:CharSet="134" ss:Size="18" ss:Color="#000000"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Sheet">
+  <Table ss:ExpandedColumnCount="6" ss:ExpandedRowCount="15" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultColumnWidth="53" ss:DefaultRowHeight="14">
+   <Column ss:AutoFitWidth="0" ss:Width="120"/>
+   <Column ss:Width="159"/>
+   <Column ss:AutoFitWidth="0" ss:Width="120"/>
+   <Column ss:Width="145"/>
+   <Column ss:AutoFitWidth="0" ss:Width="120"/>
+   <Column ss:Width="299"/>
+   <Row ss:Height="24">
+    <Cell ss:MergeAcross="5" ss:StyleID="s23"><Data ss:Type="String">提取车间自控报表&#45;-1#提取罐</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">品名</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">product_name</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">批量</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">batch_quantity</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">批号</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">batch_number</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">设备名称</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">device_name</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">设备编号</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">device_id</Data></Cell>
+    <Cell ss:StyleID="s16"/>
+    <Cell ss:StyleID="s16"/>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">开始时间</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">device_batch_start_time</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">结束时间</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">device_batch_end_time</Data></Cell>
+    <Cell ss:StyleID="s16"/>
+    <Cell ss:StyleID="s16"/>
+   </Row>
+   <Row>
+    <Cell ss:MergeAcross="5" ss:StyleID="s16"><Data ss:Type="String">一次参数设置</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">升温压力设定</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_up_temp_press_set</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温压力设定</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_press_set</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">加溶媒量</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_solvent_num_set</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">升温温度设定</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_up_temp_set</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温温度设定</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_set</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温时间设定</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_time_set</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:MergeAcross="5" ss:StyleID="s16"><Data ss:Type="String">一次煎煮记录</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">升温开始时间</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_up_temp_start_time</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">升温结束时间</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_up_temp_end_time</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">加溶媒量</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_solvent_num</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温开始时间</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_start_time</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温结束时间</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_end_time</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温时间</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_time</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">升温最低压力</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_up_temp_min_press</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温最低压力</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_min_press</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温最低温度</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_min_temp</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">升温最高压力</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_up_temp_max_press</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温最高压力</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_max_press</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">保温最高温度</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_hold_temp_max_temp</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">出液量</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">p1_out_num</Data></Cell>
+    <Cell ss:StyleID="s16"/>
+    <Cell ss:StyleID="s16"/>
+    <Cell ss:StyleID="s16"/>
+    <Cell ss:StyleID="s16"/>
+   </Row>
+   <Row>
+    <Cell ss:MergeAcross="5" ss:StyleID="s16"><Data ss:Type="String">其他信息</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">操作人</Data></Cell>
+    <Cell ss:StyleID="s16"/>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">复核人</Data></Cell>
+    <Cell ss:StyleID="s16"/>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">报表生成时间</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">now_time</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <Zoom>125</Zoom>
+   <Selected/>
+   <Panes>
+    <Pane>
+     <Number>3</Number>
+     <ActiveRow>3</ActiveRow>
+     <ActiveCol>3</ActiveCol>
+    </Pane>
+   </Panes>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+</Workbook>

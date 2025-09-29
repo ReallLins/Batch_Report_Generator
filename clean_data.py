@@ -52,7 +52,7 @@ class SXReportDataProtocol(BaseReportDataProtocol, Protocol):
     pass
 
 @dataclass
-class BaseReportData:
+class BaseReportData(BaseReportDataProtocol):
     product_name: Optional[str] = ''
     batch_quantity: Optional[float] = None
     batch_number: Optional[str] = ''
@@ -333,22 +333,18 @@ class TQReportTemplateProcessor:
             'sections': [
                 {
                     'title': '基本信息',
-                    'type': 'header',
                     'data': pd.DataFrame(header_rows).fillna('').astype(str)
                 },
                 {
                     'title': '一次参数设置',
-                    'type': 'main',
                     'data': pd.DataFrame(p1_set_rows).fillna('').astype(str)
                 },
                 {
                     'title': '一次煎煮记录',
-                    'type': 'main',
                     'data': pd.DataFrame(p1_record_rows).fillna('').astype(str)
                 },
                 {
                     'title': '其他信息',
-                    'type': 'footer',
                     'data': pd.DataFrame(footer_rows).fillna('').astype(str)
                 }
             ]

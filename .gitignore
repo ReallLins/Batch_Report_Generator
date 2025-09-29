@@ -199,3 +199,5 @@ Dockerfile.local
 # 用户自定义
 custom_config.py
 local_settings.py
+structure.html
+his_api.html

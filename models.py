@@ -111,7 +111,7 @@ class TTQBatchArchive(TArchiveBase):
     # 一次煎煮溶媒和出液
     p1_solvent_num = Column(DECIMAL, nullable=True)
     p1_out_num = Column(DECIMAL, nullable=True)
-    # 一次煎煮整体时间，可能用来获取历史序列值
+    # 一次煎煮整体时间，可能用来获取时序数据
     p1_start_time = Column(DateTime, nullable=True)
     p1_end_time = Column(DateTime, nullable=True)
 

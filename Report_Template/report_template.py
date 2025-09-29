@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 TQ_REPORT_TEMPLATE = {
     "title": "提取车间自控报表-提取罐1",
     "header": {
@@ -98,5 +95,3 @@ TQ_REPORT_TEMPLATE = {
         ]
     }
 }
-df1 = pd.DataFrame(TQ_REPORT_TEMPLATE)
-print(df1)
