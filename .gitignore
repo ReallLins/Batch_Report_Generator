@@ -200,4 +200,4 @@ Dockerfile.local
 custom_config.py
 local_settings.py
 structure.html
-his_api.html
+.his_database_api/his_api.html
