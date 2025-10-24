@@ -8,11 +8,11 @@ Base = declarative_base()
 class TArchiveBase(Base):
     __abstract__ = True
 
-    device_batch_id = Column(Integer, ForeignKey("T_Device_Batch.device_batch_id"), primary_key=True)
-    device_id = Column(Integer, ForeignKey("T_Device_Info.device_id"), nullable = False)
+    device_batch_id = Column(Integer, ForeignKey("t_device_batch.device_batch_id"), primary_key=True)
+    device_id = Column(Integer, ForeignKey("t_device_info.device_id"), nullable = False)
 
 class TDeviceType(Base):
-    __tablename__ = "T_Device_Type"
+    __tablename__ = "t_device_type"
 
     device_type_id = Column(Integer, primary_key=True, nullable=False)
     type_code = Column(NVARCHAR, nullable=False)
@@ -21,17 +21,17 @@ class TDeviceType(Base):
     archive_table_name = Column(NVARCHAR, nullable=False)
 
 class TDeviceInfo(Base):
-    __tablename__ = "T_Device_Info"
+    __tablename__ = "t_device_info"
 
     device_id = Column(Integer, primary_key=True)
-    device_type_id = Column(Integer, ForeignKey("T_Device_Type.device_type_id"), nullable=False)
+    device_type_id = Column(Integer, ForeignKey("t_device_type.device_type_id"), nullable=False)
     device_name = Column(NVARCHAR, nullable=False)
     product_name = Column(NVARCHAR, nullable=True)
-    batch_number = Column(NVARCHAR, ForeignKey("T_Batch.batch_number"), nullable=True)
+    batch_number = Column(NVARCHAR, ForeignKey("t_batch.batch_number"), nullable=True)
     device_state = Column(NVARCHAR, nullable=True)
 
 class TBatch(Base):
-    __tablename__ = "T_Batch"
+    __tablename__ = "t_batch"
 
     batch_number = Column(NVARCHAR, primary_key=True)
     product_name = Column(NVARCHAR, nullable=False)
@@ -41,20 +41,20 @@ class TBatch(Base):
     batch_quantity = Column(DECIMAL(10, 2), nullable=True)
 
 class TDeviceBatch(Base):
-    __tablename__ = "T_Device_Batch"
+    __tablename__ = "t_device_batch"
 
     device_batch_id = Column(Integer, primary_key=True)
-    device_id = Column(Integer, ForeignKey("T_Device_Info.device_id"), unique=True)
-    batch_number = Column(NVARCHAR, ForeignKey("T_Batch.batch_number"), unique=True)
+    device_id = Column(Integer, ForeignKey("t_device_info.device_id"), unique=True)
+    batch_number = Column(NVARCHAR, ForeignKey("t_batch.batch_number"), unique=True)
     start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
     device_batch_state = Column(NVARCHAR, nullable=True)
 
 class TTQBatchRealtime(Base):
-    __tablename__ = "T_TQ_Batch_Realtime"
+    __tablename__ = "t_tq_batch_realtime"
 
-    device_batch_id = Column(Integer, ForeignKey("T_Device_Batch.device_batch_id"), nullable = False)
-    device_id = Column(Integer, ForeignKey("T_Device_Info.device_id"), primary_key=True)
+    device_batch_id = Column(Integer, ForeignKey("t_device_batch.device_batch_id"), nullable = False)
+    device_id = Column(Integer, ForeignKey("t_device_info.device_id"), primary_key=True)
     # 一次煎煮设定参数
     p1_up_temp_set = Column(DECIMAL, nullable=True)
     p1_up_temp_press_set = Column(DECIMAL, nullable=True)
@@ -83,7 +83,7 @@ class TTQBatchRealtime(Base):
     p1_end_time = Column(DateTime, nullable=True)
 
 class TTQBatchArchive(TArchiveBase):
-    __tablename__ = "T_TQ_Batch_Archive"
+    __tablename__ = "t_tq_batch_archive"
 
     # 设备批次时间
     device_batch_start_time = Column(DateTime, nullable=True)
@@ -116,19 +116,19 @@ class TTQBatchArchive(TArchiveBase):
     p1_end_time = Column(DateTime, nullable=True)
 
 class TSXBatchRealtime(Base):
-    __tablename__ = "T_SX_Batch_Realtime"
+    __tablename__ = "t_sx_batch_realtime"
 
-    device_batch_id = Column(Integer, ForeignKey("T_Device_Batch.device_batch_id"), nullable = False)
-    device_id = Column(Integer, ForeignKey("T_Device_Info.device_id"), primary_key=True)
+    device_batch_id = Column(Integer, ForeignKey("t_device_batch.device_batch_id"), nullable = False)
+    device_id = Column(Integer, ForeignKey("t_device_info.device_id"), primary_key=True)
 
 class TSXBatchArchive(TArchiveBase):
-    __tablename__ = "T_SX_Batch_Archive"
+    __tablename__ = "t_sx_batch_archive"
 
 
 
 ARCHIVE_TABLE_MAPPING: dict[str, type[TArchiveBase]] = {
-    'T_TQ_Batch_Archive': TTQBatchArchive,
-    'T_SX_Batch_Archive': TSXBatchArchive
+    't_tq_batch_archive': TTQBatchArchive,
+    't_sx_batch_archive': TSXBatchArchive
 }
 
 def get_archive_table_class(table_name: str) -> type[TArchiveBase]:

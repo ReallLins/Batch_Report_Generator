@@ -144,9 +144,9 @@ def get_search_batchs_data(
                 di.device_state,
                 db.start_time AS device_batch_start_time,
                 db.end_time AS device_batch_end_time
-        FROM    T_Batch b
-        LEFT JOIN T_Device_Batch db ON b.batch_number = db.batch_number
-        LEFT JOIN T_Device_Info di ON db.device_id = di.device_id
+        FROM    t_batch b
+        LEFT JOIN t_device_batch db ON b.batch_number = db.batch_number
+        LEFT JOIN t_device_info di ON db.device_id = di.device_id
         WHERE 1=1
     """
     params = {}

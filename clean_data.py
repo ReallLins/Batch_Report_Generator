@@ -215,12 +215,12 @@ class SXDataCleaner:
 
 class DataCleanerFactory:
     CLEANER_MAPPING: Dict[str, type] = {
-        'T_TQ_Batch_Archive': TQDataCleaner,
-        'T_SX_Batch_Archive': SXDataCleaner
+        't_tq_batch_archive': TQDataCleaner,
+        't_sx_batch_archive': SXDataCleaner
     }
     REPORTDATA_MAPPING: Dict[str, type] = {
-        'T_TQ_Batch_Archive': TQReportData,
-        'T_SX_Batch_Archive': SXReportData
+        't_tq_batch_archive': TQReportData,
+        't_sx_batch_archive': SXReportData
     }
 
     @classmethod
@@ -366,8 +366,8 @@ class SXReportTemplateProcessor:
 
 class ReportTemplateProcessor:
     PROCESSOR_MAPPING: dict[str, type] = {
-        "T_TQ_Batch_Archive": TQReportTemplateProcessor,
-        "T_SX_Batch_Archive": SXReportTemplateProcessor
+        "t_tq_batch_archive": TQReportTemplateProcessor,
+        "t_sx_batch_archive": SXReportTemplateProcessor
     }
 
     @classmethod
